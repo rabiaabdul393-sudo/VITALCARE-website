@@ -1,5 +1,3 @@
-# VITALCARE-website
-secure medical web application project
 # VitalCare Web Application
 
 VitalCare is a web-based application designed to manage patient, doctor, and admin information securely. It provides functionalities for appointments, medical notes, prescriptions, and database management.
