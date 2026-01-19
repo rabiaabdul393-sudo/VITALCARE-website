@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Patient Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body { margin:0; font-family:'Poppins',sans-serif; color:#313f52;
+      background:url('/Users/90s./Downloads/bluebg.jpg') no-repeat center center fixed;
+      background-size:cover; position:relative; }
+    body::before { content:''; position:absolute; inset:0; background-color:rgba(245,245,245,0.5); backdrop-filter:blur(1px); z-index:0; }
+    header, nav, section, footer { position:relative; z-index:1; }
+    header { background-color:#a5cee2; height:70px; padding:0 30px; display:flex; align-items:center; justify-content:space-between; }
+    header img { width:40px; }
+    .logo-text { font-size:26px; font-weight:bold; }
+    .logo-text .vital { color:white; } .logo-text .care { color:#313f52; }
+    .logout-link { text-decoration:none; color:#313f52; font-weight:600; }
+    nav { background-color:#f8f7f2; display:flex; justify-content:center; padding:15px 0; gap:25px; }
+    nav a { text-decoration:none; color:#313f52; font-weight:600; }
+    nav a:hover { color:#86b9cf; }
+    .patient-section { padding:40px 20px; }
+    h1 { text-align:center; margin-bottom:30px; }
+    .tabs { display:flex; justify-content:center; gap:20px; margin-bottom:30px; flex-wrap:wrap; }
+    .tab-btn { background-color:#a5cee2; border:none; padding:12px 25px; border-radius:25px; font-weight:bold; cursor:pointer; transition:.3s; }
+    .tab-btn.active, .tab-btn:hover { background-color:#86b9cf; transform:scale(1.05); }
+    .tab-content { display:none; background:#fff; padding:25px; border-radius:25px; box-shadow:0 4px 15px rgba(0,0,0,.1);
+      width:80%; margin:0 auto; max-width:900px; }
+    .tab-content.active { display:block; }
+    .info-box { margin-bottom:15px; background-color:#f8f7f2; padding:15px; border-radius:15px; }
+    .info-box strong { display:inline-block; width:160px; }
+    form input, form select, form button { width:92%; padding:10px; font-size:16px; margin-bottom:15px; border-radius:10px; border:1px solid #ccc; }
+    form select { cursor:pointer; background-color:#f7f7f7; }
+    form button { background-color:#97b9d8; color:black; font-weight:bold; border:none; cursor:pointer; transition:.3s; }
+    form button:hover { background-color:#86b9cf; }
+    .empty { color:#5b6470; font-style:italic; margin:6px 0 0 6px; }
+    .locked { background:#f3f4f6; color:#475569; cursor:not-allowed; }
+    .help { font-size:12px; color:#64748b; margin-top:-8px; margin-bottom:12px; }
+    .rx { padding:12px 14px; border-radius:12px; background:#f9fafb; margin-bottom:10px; border:1px solid #e5e7eb; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="header-left">
+    <img src="images/logo.png" alt="Vital Care Logo">
+    <div class="logo-text"><span class="vital">Vital</span> <span class="care">Care</span></div>
+  </div>
+  <a href="mainpage.html" class="logout-link" id="logoutLink">Log Out</a>
+</header>
+
+<!-- nav bar -->
+
+<nav>
+  <a href="mainpage.html">Home</a>
+  <a href="departments.html">Departments</a>
+  <a href="patientinfo.html">Patient Dashboard</a>
+  <a href="aboutus.html">About Us</a>
+  <a href="contact.html">Contact Us</a>
+</nav>
+
+<section class="patient-section">
+  <h1>Patient Dashboard</h1>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="openTab('details', event)">My Details</button>
+    <button class="tab-btn" onclick="openTab('appointments', event)">Appointments</button>
+    <button class="tab-btn" onclick="openTab('prescriptions', event)">Prescriptions</button>
+    <button class="tab-btn" onclick="openTab('notes', event)">Medical Notes</button>
+  </div>
+
+  <!-- My Details for the patient -->
+  <div id="details" class="tab-content active">
+    <h2>My Details</h2>
+    <div class="info-box"><strong>Name:</strong> <span id="d_name">—</span></div>
+    <div class="info-box"><strong>Date of Birth:</strong> <span id="d_dob">—</span></div>
+    <div class="info-box"><strong>NHS Number:</strong> <span id="d_nhs">—</span></div>
+    <div class="info-box"><strong>Phone:</strong> <span id="d_phone">—</span></div>
+    <div class="info-box"><strong>Address:</strong> <span id="d_addr">—</span></div>
+    <div class="info-box"><strong>Email (login):</strong> <span id="d_email">—</span></div>
+  </div>
+
+  <!-- Appointments that a patient can make -->
+  <div id="appointments" class="tab-content">
+    <h2>Book an Appointment</h2>
+    <div class="help">Your details are loaded from your profile. You only pick a date & time.</div>
+
+    <form id="appointmentForm">
+      <label for="doctor"><strong>Choose a Doctor:</strong></label>
+      <select id="doctor" required></select>
+
+      <input type="text" id="first" placeholder="First Name">
+      <input type="text" id="last" placeholder="Last Name">
+      <input type="tel" id="number" placeholder="Phone Number">
+      <input type="email" id="email" placeholder="Email">
+      <input type="time" id="time" required>
+      <input type="date" id="date" required>
+      <button type="submit">Submit</button>
+    </form>
+	
+<!-- saved appointments appears under this -->
+    <h3 style="margin-top: 25px;">Your Appointments</h3>
+    <div id="appointments-list"></div>
+    <p id="appointments-empty" class="empty" style="display:none;">You have zero appointments booked so far.</p>
+  </div>
+
+  <!-- Prescriptions -->
+  <div id="prescriptions" class="tab-content">
+    <h2>Prescriptions</h2>
+    <div id="prescriptions-list"><p class="empty">No prescriptions yet.</p></div>
+  </div>
+
+  <!-- Medical Notes -->
+  <div id="notes" class="tab-content">
+    <h2>Medical Notes</h2>
+    <div id="notes-list"><p class="empty">No notes yet.</p></div>
+  </div>
+</section>
+
+<footer>© 2025 Vital Care. All Rights Reserved.</footer>
+
+<script>
+
+<!-- helper functions to see every output on console -->
+const STEP=(...a)=>console.log('[STEP]',...a);
+const OK  =( ...a)=>console.log('[OK]',...a);
+const WARN=(...a)=>console.warn('[WARN]',...a);
+const ERR =( ...a)=>console.error('[ERR]',...a);
+
+/* manages the tabs  */
+function openTab(tabId, event){ /* tabId is for each tab and the event is the click event  */
+  const contents=document.querySelectorAll('.tab-content');
+  const buttons=document.querySelectorAll('.tab-btn');
+  contents.forEach(c=>c.classList.remove('active'));
+  buttons.forEach(b=>b.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+/* here is where it ensures that user is logged in as a patient  */
+
+let session=null;
+try{ session=JSON.parse(localStorage.getItem('vc_session')||'null'); }catch{} /* reads the stored session  */
+
+if(!session || session.role!=='patient' || !session.email){
+  alert('Please log in as a patient to view your dashboard.');
+  window.location.href='role.html';
+}
+
+/* names of the databses as well as the object stores */
+const DB_PATIENT_NAME   = 'vitalCareDB';
+const DB_DATA_NAME      = 'VitalCareDB';
+const PATIENT_STORE     = 'Patient';
+const APPT_STORE        = 'appointments';
+const NOTES_STORE       = 'notes';
+const RX_STORE          = 'prescriptions';
+
+let idbPatients=null;   // vitalCareDB
+let idbData=null;       // VitalCareDB (appts/notes/rx)
+
+/* Open vitalCareDB (patients) */
+function openPatientsDb(){
+  return new Promise((resolve,reject)=>{ /* returns promise when the db is successfully opened  */
+    const req=indexedDB.open(DB_PATIENT_NAME, 1);
+    req.onsuccess=()=>{ idbPatients=req.result; resolve(idbPatients); };
+    req.onerror =()=> reject(req.error);
+  });
+}
+
+/* ---------- Open VitalCareDB and ensure needed stores ---------- */
+
+function ensureDataDb(){ /* checks if required stores exist if not then it updates and creates missing stores  */
+  return new Promise((resolve,reject)=>{
+    const r = indexedDB.open(DB_DATA_NAME);
+    r.onsuccess = ()=>{
+      const db = r.result;
+      const need = s => !Array.from(db.objectStoreNames).includes(s);
+      if(!(need(APPT_STORE)||need(NOTES_STORE)||need(RX_STORE))){
+        idbData = db; return resolve(db);
+      }
+      const newV = db.version + 1;
+      db.close();
+      const u = indexedDB.open(DB_DATA_NAME, newV);
+      u.onupgradeneeded = (e)=>{
+        const up = e.target.result;
+        if(need(APPT_STORE)){
+          const s=up.createObjectStore(APPT_STORE,{keyPath:'id',autoIncrement:true});
+          s.createIndex('patientEmail','patientEmail',{unique:false});
+          s.createIndex('doctorEmail','doctorEmail',{unique:false});
+          s.createIndex('date','date',{unique:false});
+        }
+        if(need(NOTES_STORE)){
+          const s=up.createObjectStore(NOTES_STORE,{keyPath:'id',autoIncrement:true});
+          s.createIndex('patientEmail','patientEmail',{unique:false});
+          s.createIndex('doctorEmail','doctorEmail',{unique:false});
+          s.createIndex('createdAt','createdAt',{unique:false});
+        }
+        if(need(RX_STORE)){
+          const s=up.createObjectStore(RX_STORE,{keyPath:'id',autoIncrement:true});
+          s.createIndex('patientEmail','patientEmail',{unique:false});
+          s.createIndex('doctorEmail','doctorEmail',{unique:false});
+          s.createIndex('createdAt','createdAt',{unique:false});
+        }
+      };
+      u.onsuccess = ()=>{ idbData=u.result; resolve(idbData); };
+      u.onerror   = ()=> reject(u.error);
+      u.onblocked = ()=> WARN('Upgrade blocked—close other tabs and reload.');
+    };
+    r.onerror = ()=> reject(r.error);
+  });
+}
+
+/* ---------- TX helpers ---------- */
+function txP(store,mode='readonly'){ return idbPatients.transaction([store],mode).objectStore(store); } /* for patients  */
+
+function txD(store,mode='readonly'){ return idbData.transaction([store],mode).objectStore(store); }/* for appointments/notes/prescriptions database*/
+
+
+/* ---------- Load patient by Email ---------- */
+function loadPatientByEmail(email){
+  return new Promise((resolve)=>{
+    try{
+      const s=txP(PATIENT_STORE,'readonly');
+      if(![...s.indexNames].includes('Email')){ /* if email index exists then query it otherwise iterate all records and match manually */
+        const all=s.getAll();
+        all.onsuccess=()=> resolve((all.result||[]).find(r=>(r.Email||r.email)===email)||null);
+        all.onerror =()=> resolve(null);
+        return;
+      }
+      const q=s.index('Email').get(email);
+      q.onsuccess=()=>resolve(q.result||null);
+      q.onerror =()=>resolve(null);
+    }catch(e){ resolve(null); }
+  });
+}
+
+/* ---------- Render appointments ---------- */
+function displayAppointmentsForPatient(patientEmail){ /* fetches appointment for patient  */
+  return new Promise((resolve)=>{
+    const list=document.getElementById('appointments-list');
+    const empty=document.getElementById('appointments-empty');
+    list.innerHTML=''; empty.style.display='none';
+    const s=txD(APPT_STORE,'readonly');
+    if([...s.indexNames].includes('patientEmail')){
+      const cur=s.index('patientEmail').openCursor(IDBKeyRange.only(patientEmail));
+      const items=[];
+      cur.onsuccess=(e)=>{
+        const c=e.target.result;
+        if(c){ items.push(c.value); c.continue(); }
+        else{
+          items.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+          renderAppts(items,list,empty); resolve();
+        }
+      };
+      cur.onerror=()=>{ empty.style.display='block'; resolve(); };
+    }else{
+      const all=s.getAll();
+      all.onsuccess=()=>{
+        const items=(all.result||[]).filter(a=>a.patientEmail===patientEmail)
+          .sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+        renderAppts(items,list,empty); resolve();
+      };
+      all.onerror=()=>{ empty.style.display='block'; resolve(); };
+    }
+  });
+}
+function renderAppts(appts,container,emptyLabel){ /* creates div elements for each appointment and appends to DOM.  */
+  if(!appts.length){ emptyLabel.style.display='block'; return; }
+  container.innerHTML='';
+  appts.forEach(a=>{
+    const box=document.createElement('div');
+    box.classList.add('info-box');
+    box.innerHTML=`
+      <strong>Doctor:</strong> ${a.doctor||a.doctorName||'-'}<br>
+      <strong>Date & Time:</strong> ${a.date||''}<br>
+      <strong>Name:</strong> ${a.patientName||'-'}<br>
+      <strong>Email:</strong> ${a.patientEmail||'-'}<br>
+      <strong>Phone:</strong> ${a.phone||'-'}
+    `;
+    container.appendChild(box);
+  });
+}
+
+/* ---------- loads the notes and prescriptions ---------- */
+function loadNotes(patientEmail){ // fetches the notes by using index patientEmail
+  const wrap=document.getElementById('notes-list'); 
+  wrap.innerHTML='';
+  const s=txD(NOTES_STORE,'readonly');
+  const items=[];
+  const useIdx=[...s.indexNames].includes('patientEmail');
+  const onDone=()=>{
+    if(!items.length){ wrap.innerHTML='<p class="empty">No notes yet.</p>'; return; }
+    items.sort((a,b)=>String(a.createdAt||'').localeCompare(String(b.createdAt||'')));
+    items.forEach(n=>{
+      const d=document.createElement('div');
+      d.className='info-box';
+      d.innerHTML=`<strong>${n.doctorName||n.doctorEmail||'Doctor'}</strong> — ${new Date(n.createdAt).toLocaleString()}<br>${(n.text||'')}`;
+      wrap.appendChild(d);
+    });
+  };
+  if(useIdx){
+    const cur=s.index('patientEmail').openCursor(IDBKeyRange.only(patientEmail));
+    cur.onsuccess=e=>{ const c=e.target.result; if(c){ items.push(c.value); c.continue(); } else onDone(); };
+    cur.onerror =onDone;
+  }else{
+    const all=s.getAll(); all.onsuccess=()=>{ (all.result||[]).forEach(x=>x.patientEmail===patientEmail&&items.push(x)); onDone(); };
+    all.onerror=onDone;
+  }
+}
+
+function loadPrescriptions(patientEmail){
+  const wrap=document.getElementById('prescriptions-list');
+  wrap.innerHTML='';
+  const s=txD(RX_STORE,'readonly');
+  const items=[];
+  const useIdx=[...s.indexNames].includes('patientEmail');
+  const onDone=()=>{
+    if(!items.length){ wrap.innerHTML='<p class="empty">No prescriptions yet.</p>'; return; }
+    items.sort((a,b)=>String(a.createdAt||'').localeCompare(String(b.createdAt||'')));
+    items.forEach(rx=>{
+      const d=document.createElement('div');
+      d.className='rx';
+      d.innerHTML = `
+        <div><strong>${rx.doctorName||rx.doctorEmail||'Doctor'}</strong> — ${new Date(rx.createdAt).toLocaleString()}</div>
+        <div><strong>Drug:</strong> ${rx.drug||'-'}</div>
+        <div><strong>Dosage:</strong> ${rx.dosage||'-'}</div>
+        <div><strong>Instructions:</strong> ${rx.instructions||'-'}</div>
+      `;
+      wrap.appendChild(d);
+    });
+  };
+  if(useIdx){
+    const cur=s.index('patientEmail').openCursor(IDBKeyRange.only(patientEmail));
+    cur.onsuccess=e=>{ const c=e.target.result; if(c){ items.push(c.value); c.continue(); } else onDone(); };
+    cur.onerror =onDone;
+  }else{
+    const all=s.getAll(); all.onsuccess=()=>{ (all.result||[]).forEach(x=>x.patientEmail===patientEmail&&items.push(x)); onDone(); };
+    all.onerror=onDone;
+  }
+}
+
+/* ---------- Small helpers ---------- */
+function setLocked(el,val){ el.value=val||''; el.readOnly=true; el.classList.add('locked'); }
+function disableSelect(el,val){
+  if(val && ![...el.options].some(o=>o.value===val)){
+    const o=document.createElement('option'); o.value=val; o.textContent=val; el.appendChild(o);
+  }
+  if(val){ el.value=val; el.disabled=true; el.classList.add('locked'); }
+}
+
+/* ---------- Boot ---------- */
+document.addEventListener('DOMContentLoaded', async ()=>{
+  // Doctors list (static)
+  const doctorSel=document.getElementById('doctor');
+  const DOCTORS=[
+    'Dr. Violante Rilton - Cardiologist','Dr. Erwin Handlin - Cardiologist','Dr. Rowland Blount - Cardiologist',
+    'Dr. Ettie Beardsworth - Neurology','Dr. Monah Caghy - Neurology','Dr. Si Pawling - Neurology',
+    'Dr. Emera McQuillan - Orthopedics','Dr. Rad Philipard - Orthopedics','Dr. Merrily Harmson - Orthopedics',
+    'Dr. Noak Kyrkeman - Pediatrics','Dr. Zoe Galloway - Pediatrics','Dr. Cordell Toor - Pediatrics',
+    'Dr. Irvin Dumberrill - Pediatrics','Dr. Hi Willingham - Dentistry','Dr. Stafani Gives - Dentistry'
+  ];
+  doctorSel.innerHTML='<option value="">-- Select Doctor --</option>'+DOCTORS.map(d=>`<option>${d}</option>`).join('');
+  const urlDoctor=new URLSearchParams(location.search).get('doctor');
+  if(urlDoctor) disableSelect(doctorSel,urlDoctor);
+
+  document.getElementById('d_email').textContent=session.email;
+
+  // Open DBs
+  await openPatientsDb();
+  await ensureDataDb();
+
+  // Load profile
+  const profile=await loadPatientByEmail(session.email);
+  if(profile){
+    const first=profile.First || '';
+    const last =profile.Last  || '';
+    const tel  =profile.Telephone || '';
+    const dob  =profile.DOB || '';
+    const nhs  =profile.NHS || 'N/A';
+    const addr =profile.Address || '';
+
+    document.getElementById('d_name').textContent=(first||last)?`${first} ${last}`.trim():'—';
+    document.getElementById('d_dob').textContent =dob || '—';
+    document.getElementById('d_nhs').textContent =nhs || '—';
+    document.getElementById('d_phone').textContent=tel || '—';
+    document.getElementById('d_addr').textContent =addr || '—';
+
+    setLocked(document.getElementById('first'), first);
+    setLocked(document.getElementById('last'),  last);
+    setLocked(document.getElementById('number'), tel);
+    setLocked(document.getElementById('email'), session.email);
+  }else{
+    setLocked(document.getElementById('email'), session.email);
+  }
+
+  // Render data panes
+  await displayAppointmentsForPatient(session.email);
+  loadNotes(session.email);
+  loadPrescriptions(session.email);
+
+  // Submit booking → VitalCareDB.appointments
+  document.getElementById('appointmentForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const doctor=document.getElementById('doctor').value.trim();
+    const first =document.getElementById('first').value.trim();
+    const last  =document.getElementById('last').value.trim();
+    const number=document.getElementById('number').value.trim();
+    const time  =document.getElementById('time').value;
+    const date  =document.getElementById('date').value;
+
+    if(!doctor || !first || !last || !number || !time || !date){
+      alert('Please select a doctor and pick a date & time.'); return;
+    }
+
+    const appt={
+      doctor,
+      patientName:`${first} ${last}`,
+      patientEmail:session.email,
+      phone:number,
+      date:`${date} ${time}`,
+      createdAt:new Date().toISOString()
+    };
+
+    const s=txD(APPT_STORE,'readwrite');
+    const addReq=s.add(appt);
+    addReq.onsuccess=async ()=>{
+      alert('Appointment booked successfully!');
+      document.getElementById('time').value='';
+      document.getElementById('date').value='';
+      await displayAppointmentsForPatient(session.email);
+    };
+    addReq.onerror =()=> alert('Failed to save appointment. Try again.');
+  });
+
+  document.getElementById('logoutLink').addEventListener('click', ()=>{ try{ localStorage.removeItem('vc_session'); }catch{} });
+});
+</script>
+</body>
+</html>

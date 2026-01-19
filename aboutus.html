@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VitalCare</title>
+  <link rel="stylesheet" href="aboutus.css">
+
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+  
+</head>
+
+<body>
+  <!-- TOP HEADER -->
+  <div class="top-header" id="topHeader">
+    <div class="top-left">
+      <img src="images/logo.png" alt="Logo" class="logo">
+      <span class="top-logo-text"><span class="white-text">Vital</span>Care</span>
+    </div>
+    <a href="role.html" class="login">Log in</a>
+  </div>
+
+  <!-- BOTTOM HEADER -->
+  <div class="bottom-header">
+    <div class="center">
+      <a href="mainpage.html">Home</a>
+      <a href="departments.html">Departments</a>
+      <a href="aboutus.html">About Us</a>
+      <a href="contact.html">Contact Us</a>
+    </div>
+  </div>
+
+  <!-- ABOUT US BOX -->
+  <section class="about-us-box" id="about">
+    <h1>About Us</h1>
+    <p>
+      VitalCare Hospital is dedicated to providing exceptional healthcare services with compassion and excellence. 
+      With state-of-the-art medical facilities and a team of highly skilled healthcare professionals, we are 
+      committed to improving the health and well-being of our community. Our patient-centered approach ensures 
+      that every individual receives personalized care tailored to their unique needs. We combine advanced medical 
+      technology with a warm, caring environment to deliver the highest standard of healthcare services.
+    </p>
+  </section>
+
+  <!-- MISSION AND VISION -->
+  <h2 class="section-title">Our Mission and Vision</h2>
+  <section class="mv-grid">
+    <div class="mv-card">
+      <div class="icon">🎯</div>
+      <h3>Mission</h3>
+      <p>To provide compassionate, high-quality healthcare services that improve the lives of the people we serve.</p>
+    </div>
+    <div class="mv-card">
+      <div class="icon">🏆</div>
+      <h3>Vision</h3>
+      <p>To be the leading hospital recognized for its quality care, innovative medical solutions, and community focus.</p>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <h2 class="section-title">Our Services</h2>
+  <section class="services-grid">
+    <div class="service-card">
+      <img src="https://images.unsplash.com/photo-1516549655169-df83a0774514?w=800&h=600&fit=crop" alt="Emergency Care">
+      <div class="service-card-content">
+        <h3>Emergency Care</h3>
+        <p>Rapid, reliable, and compassionate emergency care whenever you need it.</p>
+      </div>
+    </div>
+    <div class="service-card">
+      <img src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&h=600&fit=crop" alt="Surgical Services">
+      <div class="service-card-content">
+        <h3>Surgical Services</h3>
+        <p>State-of-the-art surgeries with expert specialists and cutting-edge technology.</p>
+      </div>
+    </div>
+    <div class="service-card">
+      <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&h=600&fit=crop" alt="Medical Consultations">
+      <div class="service-card-content">
+        <h3>Medical Consultations</h3>
+        <p>Personalized consultations with experienced physicians for every medical need.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY CHOOSE US -->
+  <h2 class="section-title">Why Choose Us?</h2>
+  <section class="reasons-section">
+    <div class="reason"><div class="check">✔</div>Highly experienced medical staff and specialists</div>
+    <div class="reason"><div class="check">✔</div>Advanced medical technology and equipment</div>
+    <div class="reason"><div class="check">✔</div>Commitment to patient satisfaction and well-being</div>
+    <div class="reason"><div class="check">✔</div>24/7 emergency services</div>
+    <div class="reason"><div class="check">✔</div>Comprehensive health services under one roof</div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <h2 class="section-title">What Our Patients Say</h2>
+  <section class="testimonials-grid" id="testimonials">
+    <div class="testimonial-card active">
+      <div class="heart">❤️</div>
+      <p>"The care I received at VitalCare was exceptional. The staff made me feel comfortable and well taken care of."</p>
+      <span>— Jane Doe</span>
+    </div>
+    <div class="testimonial-card">
+      <div class="heart">❤️</div>
+      <p>"A hospital that truly cares about its patients. I'm grateful for the support I received during my treatment."</p>
+      <span>— John Smith</span>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    &copy; <span id="year"></span> VitalCare. All rights reserved
+  </footer>
+
+  <!-- BACK TO TOP BUTTON -->
+  <button id="backToTop">↑ Top</button>
+
+  <script>
+    const topHeader = document.getElementById('topHeader');
+    const backToTop = document.getElementById('backToTop');
+
+    window.addEventListener('scroll', () => {
+      if(window.scrollY > 50) topHeader.classList.add('scrolled');
+      else topHeader.classList.remove('scrolled');
+
+      backToTop.style.display = window.scrollY > 300 ? 'block' : 'none';
+    });
+
+    document.querySelectorAll('.bottom-header a').forEach(link => {
+      link.addEventListener('click', e => {
+        if(link.getAttribute('href').startsWith('#')){
+          e.preventDefault();
+          document.querySelector(link.getAttribute('href')).scrollIntoView({behavior: 'smooth'});
+        }
+      });
+    });
+
+    backToTop.addEventListener('click', () => window.scrollTo({top: 0, behavior: 'smooth'}));
+
+    const testimonials = document.querySelectorAll('.testimonial-card');
+    let currentTestimonial = 0;
+    setInterval(() => {
+      testimonials[currentTestimonial].classList.remove('active');
+      currentTestimonial = (currentTestimonial + 1) % testimonials.length;
+      testimonials[currentTestimonial].classList.add('active');
+    }, 5000);
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

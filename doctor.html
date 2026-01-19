@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Doctor Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { margin:0; font-family:'Poppins',sans-serif; color:#313f52;
+      background:url('/Users/90s./Downloads/bluebg.jpg') no-repeat center center fixed;
+      background-size:cover; position:relative; }
+    body::before { content:''; position:absolute; inset:0; background-color:rgba(245,245,245,0.5); backdrop-filter:blur(1px); z-index:0; }
+    header, nav, section, footer { position:relative; z-index:1; }
+    header { background:#a5cee2; height:70px; padding:0 30px; display:flex; align-items:center; justify-content:space-between; }
+    header img { width:40px; }
+    .logo-text { font-size:26px; font-weight:700; }
+    .logo-text .vital { color:#fff; } .logo-text .care { color:#313f52; }
+    .logout-link{ text-decoration:none; color:#313f52; font-weight:600; }
+    nav{ background:#f8f7f2; display:flex; justify-content:center; gap:25px; padding:15px 0; }
+    nav a{ text-decoration:none; color:#313f52; font-weight:600; }
+    nav a:hover{ color:#86b9cf; }
+    .doctor-section{ padding:40px 20px; }
+    h1{ text-align:center; margin:6px 0 0; }
+    .sub{ text-align:center; margin: 0 0 22px; font-size:14px; color:#4b5563; }
+    table{ width:90%; margin:0 auto; border-collapse:collapse; background:#fff;
+      border-radius:20px; box-shadow:0 4px 15px rgba(0,0,0,.1); overflow:hidden; }
+    th,td{ padding:14px 18px; text-align:center; border-bottom:1px solid #ddd; }
+    th{ background:#a5cee2; color:#313f52; font-weight:600; }
+    tr:hover{ background:#f2f6f8; }
+    .action-btn{ padding:8px 12px; border:none; border-radius:20px; background:#a5cee2;
+      color:#313f52; font-weight:600; cursor:pointer; transition:.2s; margin:4px 6px; }
+    .action-btn:hover{ background:#86b9cf; transform:scale(1.05); }
+    footer{ text-align:center; padding:20px; background:#a5cee2; color:#313f52; margin-top:50px; }
+    .note{ text-align:center; margin:12px 0 0; font-size:13px; color:#6b7280; }
+    
+    /* Modal styles for history view */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      max-width: 800px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #a5cee2;
+      padding-bottom: 10px;
+    }
+    .close-btn {
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .history-section {
+      margin-bottom: 25px;
+    }
+    .history-section h3 {
+      color: #313f52;
+      border-bottom: 1px solid #a5cee2;
+      padding-bottom: 5px;
+      margin-bottom: 10px;
+    }
+    .history-item {
+      background: #f8f7f2;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      border-left: 4px solid #a5cee2;
+    }
+    .history-date {
+      color: #6b7280;
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+    .no-history {
+      text-align: center;
+      color: #6b7280;
+      font-style: italic;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="header-left" style="display:flex; gap:10px; align-items:center;">
+    <img src="images/logo.png" alt="Vital Care Logo">
+    <div class="logo-text"><span class="vital">Vital</span> <span class="care">Care</span></div>
+  </div>
+  <a href="mainpage.html" class="logout-link" id="logoutLink">Log Out</a>
+</header>
+
+<nav>
+  <a href="mainpage.html">Home</a>
+  <a href="doctor.html">Doctor Dashboard</a>
+  <a href="departments.html">Departments</a>
+</nav>
+
+<section class="doctor-section">
+  <h1>Doctor Dashboard</h1>
+  <p class="sub" id="who"></p>
+
+  <table id="doctorTable">
+    <thead>
+      <tr>
+        <th>Full Name</th>
+        <th>Phone</th>
+        <th>Patient Email</th>
+        <th>Appt Date &amp; Time</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody><!-- rows inserted here --></tbody>
+  </table>
+
+  <p class="note">You'll only see patients who have booked with you.</p>
+</section>
+
+<!-- History Modal -->
+<div id="historyModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modalPatientName">Patient History</h2>
+      <button class="close-btn">&times;</button>
+    </div>
+    <div id="modalContent">
+      <!-- History content will be loaded here -->
+    </div>
+  </div>
+</div>
+
+<footer>© 2025 Vital Care. All Rights Reserved.</footer>
+
+<script>
+(function(){
+  const TAG = '%c[Doctor]%c';
+  const c1 = 'color:#0ea5e9;font-weight:700';
+  const c2 = 'color:inherit';
+  const LOG   = (...a)=>console.log(TAG, c1, c2, ...a);
+  const WARN  = (...a)=>console.warn(TAG, c1, c2, ...a);
+  const ERROR = (...a)=>console.error(TAG, c1, c2, ...a);
+
+  // ---- Session guard (must be logged-in doctor) ----
+  const sess = JSON.parse(localStorage.getItem('vc_session')||'null');
+  LOG('Session snapshot:', sess);
+  if(!sess || sess.role !== 'doctor' || !sess.email){
+    alert('Please log in as a doctor.');
+    window.location.href = 'role.html';
+    return;
+  }
+  document.getElementById('who').textContent = `Signed in as: ${sess.email}`;
+
+  // DB names/stores
+  const DB_PROFILES   = 'vitalCareDB';   // Doctors/Patient master
+  const DB_APPOINTS   = 'VitalCareDB';   // appointments / notes / prescriptions
+  const STORE_PATIENT = 'Patient';
+  const STORE_DOCTOR  = 'Doctors';
+  const STORE_APPTS   = 'appointments';
+  const STORE_NOTES   = 'notes';
+  const STORE_RX      = 'prescriptions';
+
+  let dbProfiles = null;
+  let dbAppts    = null;
+
+  // Modal elements
+  const modal = document.getElementById('historyModal');
+  const closeBtn = document.querySelector('.close-btn');
+  const modalPatientName = document.getElementById('modalPatientName');
+  const modalContent = document.getElementById('modalContent');
+
+  // Modal event listeners
+  closeBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+
+  window.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
+
+  // Expose a tiny debug console API
+  window.__docdbg = {
+    dumpStores,
+    dumpAllAppointments,
+    dumpMyAppointments,
+    dumpPatientsFor: (emails)=> getPatientsByEmail(dbProfiles, emails).then(m=>{ console.group('[dumpPatientsFor]'); console.log(m); console.groupEnd(); return m; }),
+  };
+
+  // Open both DBs and ensure VitalCareDB has required stores & indexes
+  Promise.all([openDb(DB_PROFILES), ensureApptDb()])
+    .then(([p, a]) => { dbProfiles = p; dbAppts = a; run(); })
+    .catch(err => { ERROR('DB open/ensure failed:', err); renderRows([['Could not open database(s).','','','','']]); });
+
+  function openDb(name){
+    return new Promise((res, rej)=>{
+      const r = indexedDB.open(name);
+      r.onsuccess = ()=>{
+        LOG(`Opened DB "${name}" v${r.result.version} stores=`, Array.from(r.result.objectStoreNames||[]));
+        res(r.result);
+      };
+      r.onerror   = ()=> rej(r.error);
+    });
+  }
+
+  // Ensure stores exist AND that appointments has a doctorEmail index.
+  function ensureApptDb(){
+    return new Promise((resolve, reject)=>{
+      const r = indexedDB.open(DB_APPOINTS);
+      r.onsuccess = ()=>{
+        const db = r.result;
+        LOG(`Opened DB "${DB_APPOINTS}" v${db.version} stores=`, Array.from(db.objectStoreNames||[]));
+        const has = (s)=> Array.from(db.objectStoreNames).includes(s);
+
+        let needUpgrade = false;
+        if(!has(STORE_APPTS) || !has(STORE_NOTES) || !has(STORE_RX)){
+          needUpgrade = true;
+          WARN('One or more stores missing -> upgrade needed.');
+        }else{
+          try{
+            const tmp = db.transaction([STORE_APPTS],'readonly').objectStore(STORE_APPTS);
+            const idxNames = Array.from(tmp.indexNames||[]);
+            LOG('appointments indexNames=', idxNames);
+            if(!idxNames.includes('doctorEmail')){
+              needUpgrade = true;
+              WARN('appointments missing doctorEmail index -> upgrade needed.');
+            }
+          }catch(e){
+            needUpgrade = true;
+            WARN('Could not inspect appointments indexes (will upgrade).', e);
+          }
+        }
+
+        if(!needUpgrade) return resolve(db);
+
+        const newVersion = db.version + 1;
+        db.close();
+        LOG(`Upgrading "${DB_APPOINTS}" -> v${newVersion} ...`);
+        const u = indexedDB.open(DB_APPOINTS, newVersion);
+        u.onupgradeneeded = (e)=>{
+          const up = e.target.result;
+
+          // appointments
+          let apptStore;
+          if(!up.objectStoreNames.contains(STORE_APPTS)){
+            apptStore = up.createObjectStore(STORE_APPTS,{keyPath:'id',autoIncrement:true});
+            LOG('created store:', STORE_APPTS);
+          }else{
+            apptStore = u.transaction.objectStore(STORE_APPTS);
+            LOG('opened store for upgrade:', STORE_APPTS);
+          }
+          if(!Array.from(apptStore.indexNames||[]).includes('patientEmail'))
+            apptStore.createIndex('patientEmail','patientEmail',{unique:false});
+          if(!Array.from(apptStore.indexNames||[]).includes('doctorEmail'))
+            apptStore.createIndex('doctorEmail','doctorEmail',{unique:false});
+          if(!Array.from(apptStore.indexNames||[]).includes('date'))
+            apptStore.createIndex('date','date',{unique:false});
+
+          // notes
+          if(!up.objectStoreNames.contains(STORE_NOTES)){
+            const s = up.createObjectStore(STORE_NOTES,{keyPath:'id',autoIncrement:true});
+            s.createIndex('patientEmail','patientEmail',{unique:false});
+            s.createIndex('doctorEmail','doctorEmail',{unique:false});
+            s.createIndex('createdAt','createdAt',{unique:false});
+            LOG('created store:', STORE_NOTES);
+          }
+
+          // prescriptions
+          if(!up.objectStoreNames.contains(STORE_RX)){
+            const s = up.createObjectStore(STORE_RX,{keyPath:'id',autoIncrement:true});
+            s.createIndex('patientEmail','patientEmail',{unique:false});
+            s.createIndex('doctorEmail','doctorEmail',{unique:false});
+            s.createIndex('createdAt','createdAt',{unique:false});
+            LOG('created store:', STORE_RX);
+          }
+        };
+        u.onsuccess = ()=> { LOG('Upgrade complete.'); resolve(u.result); };
+        u.onerror   = ()=> reject(u.error);
+        u.onblocked = ()=> WARN('Upgrade blocked — close other tabs for this site and reload.');
+      };
+      r.onerror = ()=> reject(r.error);
+    });
+  }
+
+  async function run(){
+    console.groupCollapsed('%c[run()]', 'color:#10b981;font-weight:700');
+    const myPrefix = await getDoctorLabelPrefix(dbProfiles, sess.email); // e.g., "Dr. Zoe Galloway"
+    LOG('Computed doctor label prefix:', myPrefix);
+
+    await dumpStores(); // quick snapshot
+
+    const appts    = await getMyAppointments(dbAppts, myPrefix, sess.email);
+
+    LOG('Final merged appointments for me:', appts.length);
+    if (appts.length) console.table(appts);
+
+    if(!appts.length){
+      console.groupEnd();
+      renderRows([['No appointments yet','','','','']]);
+      return;
+    }
+
+    const patientEmails = [...new Set(appts.map(a=>a.patientEmail).filter(Boolean))];
+    LOG('Unique patient emails from my appts:', patientEmails);
+
+    const pMap = await getPatientsByEmail(dbProfiles, patientEmails);
+    LOG('Patient map (email -> row):'); console.log(pMap);
+
+    const rows = appts.map(a=>{
+      const p = pMap[a.patientEmail] || {};
+      const fullName = [p.First||p.first, p.Last||p.last].filter(Boolean).join(' ') || '(name missing)';
+      const phone    = p.Telephone || p.phone || '(phone missing)';
+      return {
+        fullName, phone,
+        email: a.patientEmail || '(unknown)',
+        when:  a.date || '',
+        pEmail: a.patientEmail
+      };
+    });
+
+    LOG('Rendered rows preview:'); console.table(rows);
+    console.groupEnd();
+
+    renderRows(rows.map(r=>[
+      r.fullName, r.phone, r.email, r.when,
+      `<button class="action-btn" data-act="note" data-email="${r.pEmail}">Add Note</button>
+       <button class="action-btn" data-act="rx"   data-email="${r.pEmail}">Add Rx</button>
+       <button class="action-btn" data-act="history" data-email="${r.pEmail}">View History</button>`
+    ]));
+
+    // actions
+    const tb = document.querySelector('#doctorTable tbody');
+    tb.addEventListener('click', async (e)=>{
+      const btn = e.target.closest('.action-btn'); if(!btn) return;
+      const patientEmail = btn.getAttribute('data-email');
+      const act = btn.getAttribute('data-act');
+      
+      if(act === 'note'){
+        const text = prompt('Medical note for patient (free text):');
+        if(text && text.trim()){
+          await addNote(patientEmail, text.trim(), myPrefix);
+          LOG('Note saved for', patientEmail);
+          alert('Note saved.');
+        }
+      }
+      else if(act === 'rx'){
+        const drug = prompt('Prescription: Drug name?');
+        if(!drug) return;
+        const dosage = prompt('Dosage? (e.g., 500mg, 1 tablet)');
+        if(dosage === null) return;
+        const instructions = prompt('Instructions? (e.g., twice daily after meals)');
+        if(instructions === null) return;
+        await addRx(patientEmail, {
+          drug: drug.trim(),
+          dosage: (dosage||'').trim(),
+          instructions: (instructions||'').trim()
+        }, myPrefix);
+        LOG('Rx saved for', patientEmail);
+        alert('Prescription saved.');
+      }
+      else if(act === 'history'){
+        await showPatientHistory(patientEmail, pMap[patientEmail]);
+      }
+    });
+  }
+
+  // New function to show patient history
+  async function showPatientHistory(patientEmail, patientData) {
+    const patientName = patientData ? 
+      `${patientData.First || patientData.first || ''} ${patientData.Last || patientData.last || ''}`.trim() : 
+      patientEmail;
+    
+    modalPatientName.textContent = `Medical History - ${patientName}`;
+    modalContent.innerHTML = '<p>Loading history...</p>';
+    modal.style.display = 'flex';
+
+    try {
+      // Get notes and prescriptions for this patient
+      const [notes, prescriptions] = await Promise.all([
+        getPatientNotes(patientEmail),
+        getPatientPrescriptions(patientEmail)
+      ]);
+
+      let html = '';
+
+      // Notes section
+      html += '<div class="history-section">';
+      html += '<h3>Medical Notes</h3>';
+      if (notes.length > 0) {
+        notes.forEach(note => {
+          const date = new Date(note.createdAt).toLocaleString();
+          html += `
+            <div class="history-item">
+              <div class="history-date">${date} - ${note.doctorName || 'Doctor'}</div>
+              <div>${escapeHtml(note.text)}</div>
+            </div>
+          `;
+        });
+      } else {
+        html += '<div class="no-history">No medical notes found</div>';
+      }
+      html += '</div>';
+
+      // Prescriptions section
+      html += '<div class="history-section">';
+      html += '<h3>Prescriptions</h3>';
+      if (prescriptions.length > 0) {
+        prescriptions.forEach(rx => {
+          const date = new Date(rx.createdAt).toLocaleString();
+          html += `
+            <div class="history-item">
+              <div class="history-date">${date} - ${rx.doctorName || 'Doctor'}</div>
+              <div><strong>Drug:</strong> ${escapeHtml(rx.drug)}</div>
+              <div><strong>Dosage:</strong> ${escapeHtml(rx.dosage)}</div>
+              <div><strong>Instructions:</strong> ${escapeHtml(rx.instructions)}</div>
+            </div>
+          `;
+        });
+      } else {
+        html += '<div class="no-history">No prescriptions found</div>';
+      }
+      html += '</div>';
+
+      modalContent.innerHTML = html;
+    } catch (error) {
+      ERROR('Error loading patient history:', error);
+      modalContent.innerHTML = '<div class="no-history">Error loading patient history</div>';
+    }
+  }
+
+  // Get patient notes
+  function getPatientNotes(patientEmail) {
+    return new Promise((resolve) => {
+      if (!dbAppts || !dbAppts.objectStoreNames.contains(STORE_NOTES)) {
+        resolve([]);
+        return;
+      }
+      
+      const store = dbAppts.transaction([STORE_NOTES], 'readonly').objectStore(STORE_NOTES);
+      const index = store.index('patientEmail');
+      const req = index.getAll(patientEmail);
+      
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => resolve([]);
+    });
+  }
+
+  // Get patient prescriptions
+  function getPatientPrescriptions(patientEmail) {
+    return new Promise((resolve) => {
+      if (!dbAppts || !dbAppts.objectStoreNames.contains(STORE_RX)) {
+        resolve([]);
+        return;
+      }
+      
+      const store = dbAppts.transaction([STORE_RX], 'readonly').objectStore(STORE_RX);
+      const index = store.index('patientEmail');
+      const req = index.getAll(patientEmail);
+      
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => resolve([]);
+    });
+  }
+
+  // ---------- Helpers ----------
+  function getDoctorLabelPrefix(db, email){
+    return new Promise((res)=>{
+      if(!db.objectStoreNames.contains(STORE_DOCTOR)){ WARN('Doctors store missing in vitalCareDB'); res('Dr.'); return; }
+      const st = db.transaction([STORE_DOCTOR],'readonly').objectStore(STORE_DOCTOR);
+      const idxNames = Array.from(st.indexNames||[]);
+      LOG('Doctors indexes:', idxNames);
+      if(idxNames.includes('email')){
+        const q = st.index('email').get(email);
+        q.onsuccess = ()=> {
+          const d = q.result || {};
+          LOG('Doctor row via index:', d);
+          res(`Dr. ${(d.first||'').trim()} ${(d.last||'').trim()}`.trim());
+        };
+        q.onerror = ()=> { WARN('Doctors.email index get() failed'); res('Dr.'); };
+        return;
+      }
+      const all = st.getAll();
+      all.onsuccess = ()=>{
+        const row = (all.result||[]).find(d=>(d.email||'').toLowerCase()===String(email).toLowerCase())||{};
+        LOG('Doctor row via scan:', row);
+        res(`Dr. ${(row.first||'').trim()} ${(row.last||'').trim()}`.trim());
+      };
+      all.onerror = ()=> { WARN('Doctors getAll() failed'); res('Dr.'); };
+    });
+  }
+
+  function getMyAppointments(db, myPrefix, myEmail){
+    return new Promise((res)=>{
+      if(!db.objectStoreNames.contains(STORE_APPTS)){ WARN('appointments store missing in VitalCareDB'); res([]); return; }
+      const store = db.transaction([STORE_APPTS],'readonly').objectStore(STORE_APPTS);
+      const idxNames = Array.from(store.indexNames||[]);
+      LOG('appointments indexes:', idxNames);
+
+      const finish = (all)=>{
+        // Get appointments by email (new way)
+        const byEmail = all.filter(a => (a.doctorEmail||'').toLowerCase() === myEmail.toLowerCase());
+        
+        // Get appointments by name (legacy way - in case some appointments don't have doctorEmail)
+        const byName = all.filter(a => {
+          const doctorName = a.doctor || '';
+          // More flexible matching - check if doctor name contains parts of our name
+          const myNameParts = myPrefix.replace('Dr. ', '').toLowerCase().split(' ');
+          const doctorNameLower = doctorName.toLowerCase();
+          
+          // Check if doctor name contains any part of our name
+          return myNameParts.some(part => 
+            part && doctorNameLower.includes(part)
+          ) || doctorNameLower.includes(myEmail.toLowerCase());
+        });
+
+        LOG('appts total=', all.length, 'byEmail=', byEmail.length, 'byName=', byName.length);
+        LOG('byEmail appointments:', byEmail);
+        LOG('byName appointments:', byName);
+
+        // Backfill doctorEmail on legacy rows matched by name only
+        const needsBackfill = byName.filter(x => !x.doctorEmail);
+        if (needsBackfill.length) {
+          LOG('Backfilling doctorEmail on', needsBackfill.length, 'legacy appt(s).');
+          const t = db.transaction([STORE_APPTS],'readwrite').objectStore(STORE_APPTS);
+          needsBackfill.forEach(rec => {
+            rec.doctorEmail = myEmail;
+            try { t.put(rec); } catch(e) { WARN('backfill put failed for id', rec.id, e); }
+          });
+        }
+
+        // Combine both sets and remove duplicates by id
+        const combined = [...byEmail, ...byName];
+        const uniqueMap = new Map();
+        combined.forEach(appt => {
+          if (appt.id && !uniqueMap.has(appt.id)) {
+            uniqueMap.set(appt.id, appt);
+          }
+        });
+        
+        const merged = Array.from(uniqueMap.values());
+        merged.sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+        
+        LOG('Final merged appointments:', merged);
+        res(merged);
+      };
+
+      // Always get ALL appointments and filter them
+      const all = store.getAll();
+      all.onsuccess = ()=> finish(all.result || []);
+      all.onerror   = ()=> res([]);
+    });
+  }
+
+  function getPatientsByEmail(db, emails){
+    return new Promise((res)=>{
+      const out = {};
+      if(!emails.length || !db.objectStoreNames.contains(STORE_PATIENT)){ WARN('Patient store missing / no emails'); res(out); return; }
+      const store = db.transaction([STORE_PATIENT],'readonly').objectStore(STORE_PATIENT);
+      const idxNames = Array.from(store.indexNames||[]);
+      LOG('Patient indexes:', idxNames);
+
+      if(idxNames.includes('Email')){
+        let remaining = emails.length;
+        emails.forEach(e=>{
+          const q = store.index('Email').get(e);
+          q.onsuccess = ()=>{ if(q.result) out[e]=q.result; if(--remaining===0) res(out); };
+          q.onerror   = ()=>{ WARN('Patient.Email get failed for', e); if(--remaining===0) res(out); };
+        });
+      } else {
+        const all = store.getAll();
+        all.onsuccess = ()=>{
+          const rows = all.result || [];
+          rows.forEach(r=>{
+            const em = r.Email || r.email;
+            if(em && emails.includes(em)) out[em]=r;
+          });
+          res(out);
+        };
+        all.onerror = ()=> { WARN('Patient getAll failed'); res(out); };
+      }
+    });
+  }
+
+  function renderRows(rows){
+    const tb = document.querySelector('#doctorTable tbody');
+    tb.innerHTML = rows.map(r=>`
+      <tr>
+        <td>${escapeHtml(r[0])}</td>
+        <td>${escapeHtml(r[1])}</td>
+        <td>${escapeHtml(r[2])}</td>
+        <td>${escapeHtml(r[3])}</td>
+        <td>${r[4]}</td>
+      </tr>
+    `).join('');
+  }
+  function escapeHtml(s){return String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;");}
+
+  function addNote(patientEmail, text, doctorName){
+    return new Promise((res, rej)=>{
+      const t = dbAppts.transaction([STORE_NOTES],'readwrite');
+      t.objectStore(STORE_NOTES).add({
+        patientEmail, doctorEmail: sess.email, doctorName,
+        text, createdAt: new Date().toISOString()
+      });
+      t.oncomplete = ()=> res(true);
+      t.onerror    = ()=> rej(t.error);
+    });
+  }
+
+  function addRx(patientEmail, rx, doctorName){
+    return new Promise((res, rej)=>{
+      const t = dbAppts.transaction([STORE_RX],'readwrite');
+      t.objectStore(STORE_RX).add({
+        patientEmail, doctorEmail: sess.email, doctorName,
+        drug: rx.drug, dosage: rx.dosage, instructions: rx.instructions,
+        createdAt: new Date().toISOString()
+      });
+      t.oncomplete = ()=> res(true);
+      t.onerror    = ()=> rej(t.error);
+    });
+  }
+
+  // ---------- Debug helpers exposed on window.__docdbg ----------
+  async function dumpStores(){
+    try{
+      console.group('%c[dumpStores]', 'color:#a855f7;font-weight:700');
+      if (dbProfiles) {
+        LOG('vitalCareDB v'+dbProfiles.version, 'stores=', Array.from(dbProfiles.objectStoreNames||[]));
+        try {
+          const t = dbProfiles.transaction(Array.from(dbProfiles.objectStoreNames||[]),'readonly');
+          // just to prove txn works
+        } catch {}
+      }
+      if (dbAppts) {
+        LOG('VitalCareDB v'+dbAppts.version, 'stores=', Array.from(dbAppts.objectStoreNames||[]));
+        try {
+          const st = dbAppts.transaction([STORE_APPTS],'readonly').objectStore(STORE_APPTS);
+          LOG('appointments indexes=', Array.from(st.indexNames||[]));
+        } catch(e) { WARN('appointments idx read failed', e); }
+      }
+      console.groupEnd();
+    }catch(e){ ERROR('dumpStores error', e); }
+  }
+
+  async function dumpAllAppointments(){
+    if(!dbAppts || !dbAppts.objectStoreNames.contains(STORE_APPTS)){ WARN('No appointments store'); return; }
+    const st = dbAppts.transaction([STORE_APPTS],'readonly').objectStore(STORE_APPTS);
+    const req = st.getAll();
+    req.onsuccess = ()=> { console.group('[All appointments]'); console.table(req.result||[]); console.groupEnd(); };
+    req.onerror   = ()=> WARN('dumpAllAppointments failed');
+  }
+
+  async function dumpMyAppointments(){
+    if(!dbAppts || !dbAppts.objectStoreNames.contains(STORE_APPTS)){ WARN('No appointments store'); return; }
+    const st = dbAppts.transaction([STORE_APPTS],'readonly').objectStore(STORE_APPTS);
+    const allReq = st.getAll();
+    allReq.onsuccess = ()=> {
+      const all = allReq.result||[];
+      const mine = all.filter(a => (a.doctorEmail||'').toLowerCase() === String(sess.email).toLowerCase());
+      console.group('[My appointments by doctorEmail]');
+      console.table(mine);
+      console.groupEnd();
+    };
+  }
+
+  document.getElementById('logoutLink').addEventListener('click', ()=>{ try{ localStorage.removeItem('vc_session'); }catch{} });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>VitalCare Database</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+</head>
+<body>
+<h1>VitalCare Database</h1>
+<h3>Open console to see output!</h3>
+
+<!-- Doctor buttons -->
+<button onclick="createDatabase()">Create Database</button><br><br>
+<button onclick="getDoctorData()">Get Doctor Data</button>
+<button onclick="addDoctorData()">Add Doctor Data</button><br><br>
+
+<!-- Patient buttons -->
+<button onclick="getPatientData()">Get Patient Data</button>
+<button onclick="addPatientData()">Add Patient Data</button><br><br>
+
+<!-- Admin buttons -->
+<button onclick="getAdminData()">Get Admin Data</button>
+<button onclick="addAdminData()">Add Admin Data</button><br><br>
+
+<!-- Medication buttons -->
+<button onclick="getMedicinesData()">Get Medicines Data</button>
+<button onclick="addMedicinesData()">Add Medicines Data</button><br><br>
+
+<div id="output"></div>
+
+<script>
+/* --------- LOG HELPERS --------- */
+function STEP(msg, ...a){ console.log('🟦 [STEP]', msg, ...a); }
+function OK(msg, ...a){ console.log('🟩 [OK]', msg, ...a); }
+function WARN(msg, ...a){ console.warn('🟨 [WARN]', msg, ...a); }
+function ERR(msg, ...a){ console.error('🟥 [ERR]', msg, ...a); }
+
+window.addEventListener('error', (e)=>{
+  ERR('Uncaught error', e.message, e.filename+':'+e.lineno+':'+e.colno);
+});
+
+/* --------- GLOBALS --------- */
+var db;
+var dbName = 'vitalCareDB';
+var encryptionKey = 'myEncryptionKey';
+var doctor_data = [];
+var patient_data = [];
+var admin_data = [];
+var medicine_data = [];
+
+/* --------- Create Database --------- */
+function createDatabase() {
+  STEP('createDatabase()');
+  var request = indexedDB.open(dbName, 1);
+
+  request.onerror = function(event) {
+    ERR('Error opening database', event?.target?.error || event);
+  };
+
+  request.onsuccess = function(event) {
+    db = event.target.result;
+    OK('Database opened successfully', { name: db.name, version: db.version, stores: Array.from(db.objectStoreNames) });
+  };
+
+  request.onupgradeneeded = function(event) {
+    db = event.target.result;
+    STEP('onupgradeneeded', { oldVersion: event.oldVersion, newVersion: event.newVersion });
+
+    // Doctors
+    if (!db.objectStoreNames.contains('Doctors')) {
+      var doctorStore = db.createObjectStore('Doctors', { keyPath: 'id', autoIncrement: true });
+      doctorStore.createIndex('first', 'first', { unique: false });
+      doctorStore.createIndex('last', 'last', { unique: false });
+      doctorStore.createIndex('gender', 'gender', { unique: false });
+      doctorStore.createIndex('address', 'address', { unique: false });
+      doctorStore.createIndex('email', 'email', { unique: false });
+      doctorStore.createIndex('telephone', 'telephone', { unique: false });
+      doctorStore.createIndex('password', 'password', { unique: false });
+      OK('Created store: Doctors');
+    } else { WARN('Store Doctors already exists'); }
+
+    // Patient
+    if (!db.objectStoreNames.contains('Patient')) {
+      var patientStore = db.createObjectStore('Patient', { keyPath: 'id' });
+      patientStore.createIndex('NHS', 'NHS', { unique: true });
+      patientStore.createIndex('First', 'First', { unique: false });
+      patientStore.createIndex('Last', 'Last', { unique: false });
+      patientStore.createIndex('DOB', 'DOB', { unique: false });
+      patientStore.createIndex('Gender', 'Gender', { unique: false });
+      patientStore.createIndex('Address', 'Address', { unique: false });
+      patientStore.createIndex('Email', 'Email', { unique: false });
+      patientStore.createIndex('Telephone', 'Telephone', { unique: false });
+      patientStore.createIndex('password', 'password', { unique: false });
+      OK('Created store: Patient');
+    } else { WARN('Store Patient already exists'); }
+
+    // Admin
+    if (!db.objectStoreNames.contains('Admin')) {
+      var adminStore = db.createObjectStore('Admin', { keyPath: 'id', autoIncrement: true });
+      adminStore.createIndex('first', 'first', { unique: false });
+      adminStore.createIndex('last', 'last', { unique: false });
+      adminStore.createIndex('email', 'email', { unique: false });
+      adminStore.createIndex('password', 'password', { unique: false });
+      OK('Created store: Admin');
+    } else { WARN('Store Admin already exists'); }
+
+    // medicines (lowercase)
+    if (!db.objectStoreNames.contains('medicines')) {
+      var medicineStore = db.createObjectStore('medicines', { keyPath: 'id', autoIncrement: true });
+      medicineStore.createIndex('Drug', 'Drug', { unique: false });
+      OK('Created store: medicines');
+    } else { WARN('Store medicines already exists'); }
+
+    OK('Object stores created/verified', Array.from(db.objectStoreNames));
+  };
+}
+
+/* --------- Fetch JSON --------- */
+function getDoctorData() {
+  STEP('getDoctorData() → fetch doctors.json');
+  fetch('https://jsethi-mdx.github.io/cst2572.github.io/doctors.json')
+    .then(r => (STEP('HTTP', r.status), r.json()))
+    .then(data => { doctor_data = data; OK('Doctor data loaded', { count: doctor_data.length }); })
+    .catch(err => ERR('Error fetching doctor data', err));
+}
+
+function getPatientData() {
+  STEP('getPatientData() → fetch patients.json');
+  fetch('https://jsethi-mdx.github.io/cst2572.github.io/patients.json')
+    .then(r => (STEP('HTTP', r.status), r.json()))
+    .then(data => { patient_data = data; OK('Patient data loaded', { count: patient_data.length }); })
+    .catch(err => ERR('Error fetching patient data', err));
+}
+
+function getAdminData() {
+  STEP('getAdminData() → fetch admin.json');
+  fetch('https://jsethi-mdx.github.io/cst2572.github.io/admin.json')
+    .then(r => (STEP('HTTP', r.status), r.json()))
+    .then(data => { admin_data = data; OK('Admin data loaded', { count: admin_data.length }); })
+    .catch(err => ERR('Error fetching admin data', err));
+}
+
+function getMedicinesData() {
+  STEP('getMedicinesData() → fetch medicines.json');
+  fetch('https://jsethi-mdx.github.io/cst2572.github.io/medicines.json')
+    .then(r => (STEP('HTTP', r.status), r.json()))
+    .then(data => { medicine_data = data; OK('Medicine data loaded', { count: medicine_data.length }); })
+    .catch(err => ERR('Error fetching medicines data', err));
+}
+
+/* --------- Insert into stores --------- */
+function addDoctorData() {
+  STEP('addDoctorData()');
+  if (!db) return ERR('Database not opened!');
+  if (!doctor_data.length) return ERR('No doctor data loaded!');
+
+  var tx = db.transaction('Doctors', 'readwrite');
+  var store = tx.objectStore('Doctors');
+
+  doctor_data.forEach(doctor => {
+    // CHANGED: deterministic per-email password
+    let passwd = generatePasswordForUser(doctor.email);
+    let encryptedPass = encryptData(passwd);
+    var data = {
+      first: doctor.first_name,
+      last: doctor.last_name,
+      gender: doctor.gender,
+      address: doctor.Address,
+      email: doctor.email,
+      telephone: doctor.Telephone,
+      password: encryptedPass
+    };
+    var req = store.add(data);
+    req.onsuccess = function(){ OK(`Doctor added`, { email: data.email }); };
+    req.onerror  = function(e){ ERR('Doctor add error', e.target.error); };
+  });
+
+  tx.oncomplete = () => OK('All doctor data added.');
+}
+
+function addPatientData() {
+  STEP('addPatientData()');
+  if (!db) return ERR('Database not opened!');
+  if (!patient_data.length) return ERR('No patient data loaded!');
+
+  var tx = db.transaction('Patient', 'readwrite');
+  var store = tx.objectStore('Patient');
+
+  patient_data.forEach(patient => {
+    if (!patient.id) patient.id = Date.now() + Math.floor(Math.random()*1000);
+    // CHANGED: deterministic per-email password (JSON uses "Email" with capital E)
+    let passwd = generatePasswordForUser(patient.Email);
+    let encryptedPass = encryptData(passwd);
+    var data = {
+      id: patient.id,
+      NHS: patient.NHS,
+      Title: patient.Title,
+      First: patient.First,
+      Last: patient.Last,
+      DOB: patient.DOB,
+      Gender: patient.Gender,
+      Address: patient.Address,
+      Email: patient.Email,
+      Telephone: patient.Telephone,
+      password: encryptedPass
+    };
+    var req = store.put(data);
+    req.onsuccess = function(){ OK(`Patient added/updated`, { email: data.Email }); };
+    req.onerror  = function(e){ ERR('Patient add error', e.target.error); };
+  });
+
+  tx.oncomplete = () => OK('All patient data added successfully!');
+}
+
+function addAdminData() {
+  STEP('addAdminData()');
+  if (!db) return ERR('Database not opened!');
+  if (!admin_data.length) return ERR('No admin data loaded!');
+
+  var tx = db.transaction('Admin', 'readwrite');
+  var store = tx.objectStore('Admin');
+
+  admin_data.forEach(admin => {
+    if (!admin.id) admin.id = Date.now() + Math.floor(Math.random()*1000);
+    // CHANGED: deterministic per-email password
+    let passwd = generatePasswordForUser(admin.email);
+    let encryptedPass = encryptData(passwd);
+    var data = {
+      id: admin.id,
+      first: admin.first_name,
+      last: admin.last_name,
+      email: admin.email,
+      password: encryptedPass
+    };
+    var req = store.put(data);
+    req.onsuccess = function(){ OK(`Admin added/updated`, { email: data.email }); };
+    req.onerror  = function(e){ ERR('Admin add error', e.target.error); };
+  });
+
+  tx.oncomplete = () => OK('All admin data added successfully!');
+}
+
+function addMedicinesData() {
+  STEP('addMedicinesData()');
+  if (!db) return ERR('Database not opened!');
+  if (!medicine_data.length) return ERR('No medicine data loaded!');
+
+  var tx = db.transaction('medicines', 'readwrite'); // lowercase store
+  var store = tx.objectStore('medicines');
+
+  medicine_data.forEach(medicine => {
+    var data = { id: medicine.id, Drug: medicine.Drug };
+    var req = store.put(data);
+    req.onsuccess = function(){ OK(`Medicine added`, data); };
+    req.onerror  = function(e){ ERR('Medicine add error', e.target.error); };
+  });
+
+  tx.oncomplete = () => OK('All medicine data added successfully!');
+}
+
+/* --------- Utilities --------- */
+// (kept for other uses; no longer used for seeding)
+function generateSecurePassword() {
+  const length = 10;
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!$£';
+  let password = '';
+  for (let i = 0; i < length; i++) password += chars.charAt(Math.floor(Math.random() * chars.length));
+  STEP('Generated random password');
+  return password;
+}
+
+// NEW/TOP-LEVEL: deterministic per-email password
+function generatePasswordForUser(email) {
+  return CryptoJS.MD5(String(email || '')).toString(CryptoJS.enc.Base64);
+}
+
+function encryptData(pwrd) {
+  const ct = CryptoJS.AES.encrypt(pwrd, encryptionKey).toString();
+  return ct;
+}
+function decryptData(pwrd) {
+  const pt = CryptoJS.AES.decrypt(pwrd, encryptionKey).toString(CryptoJS.enc.Utf8);
+  return pt;
+}
+
+/* --------- Display All (with fixed medicines store name) --------- */
+function showAllData() {
+  STEP('showAllData()');
+
+  db.transaction('Doctors','readonly').objectStore('Doctors').getAll().onsuccess = function(e){
+    var list = e.target.result || [];
+    OK('Doctors count', list.length);
+    list.forEach((d,i)=>console.log(`Doctor[${i}]`, d.email));
+  };
+
+  db.transaction('Patient','readonly').objectStore('Patient').getAll().onsuccess = function(e){
+    var list = e.target.result || [];
+    OK('Patient count', list.length);
+    list.forEach((p,i)=>console.log(`Patient[${i}]`, p.Email));
+  };
+
+  db.transaction('Admin','readonly').objectStore('Admin').getAll().onsuccess = function(e){
+    var list = e.target.result || [];
+    OK('Admin count', list.length);
+    list.forEach((a,i)=>console.log(`Admin[${i}]`, a.email));
+  };
+
+  /* FIX: store name must be 'medicines' (lowercase) everywhere */
+  db.transaction('medicines','readonly').objectStore('medicines').getAll().onsuccess = function(e){
+    var list = e.target.result || [];
+    OK('Medicines count', list.length);
+    list.forEach((m,i)=>console.log(`Medicine[${i}]`, m.id, m.Drug));
+  };
+}
+
+/* --------- COMPLETELY REMOVED decrypt functions --------- */
+// These functions are removed entirely to prevent any password display
+
+/* --------- EXPORT to window so onclick works --------- */
+Object.assign(window, {
+  createDatabase,
+  getDoctorData,
+  addDoctorData,
+  getPatientData,
+  addPatientData,
+  getAdminData,
+  addAdminData,
+  getMedicinesData,
+  addMedicinesData,
+  showAllData
+  // decryptStore and decryptAllStores are removed
+});
+</script>
+</body>
+</html>

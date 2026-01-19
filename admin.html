@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* Color variables for easy theme changes */
+    :root{
+      --brand:#a5cee2; --brand-2:#86b9cf; --ink:#313f52; --ink-2:#4b5563; --bg:#f8f7f2;
+      --card:#ffffff; --muted:#e5e7eb; --shadow:0 4px 15px rgba(0,0,0,.1);
+    }
+    
+    /* Basic reset and global styles */
+    *{ box-sizing: border-box; }
+    
+    /* Main page styling with background image */
+    body{
+      margin:0; font-family:'Poppins',Arial,sans-serif; color:var(--ink);
+      background:url('/Users/90s./Downloads/bluebg.jpg') no-repeat center fixed; background-size:cover;
+      min-height:100vh; display:flex; flex-direction:column; position:relative;
+    }
+    
+    /* Semi-transparent overlay for better readability */
+    body::before{ content:''; position:absolute; inset:0; background:rgba(245,245,245,.6); backdrop-filter:blur(2px); z-index:0; }
+    
+    /* Ensure content appears above the overlay */
+    header,nav,main,footer{ position:relative; z-index:1; }
+    
+    /* Header styling with logo and logout link */
+    header{
+      height:70px; background:var(--brand); padding:0 24px;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    header img{ width:40px; height:auto; }
+    .logo{ display:flex; align-items:center; gap:10px; }
+    .logo-text{ font-weight:700; font-size:26px; line-height:1; }
+    .logo-text .vital{ color:#fff; } .logo-text .care{ color:var(--ink); }
+    .link{ text-decoration:none; color:var(--ink); font-weight:600; }
+    
+    /* Navigation bar styling */
+    nav{ background:var(--bg); display:flex; justify-content:center; gap:28px; padding:14px 0; }
+    nav a{ color:var(--ink); text-decoration:none; font-weight:600; }
+    nav a:hover{ color:var(--brand-2); }
+
+    /* Main content area */
+    main{ padding:34px 20px; flex:1; }
+    h1{ text-align:center; margin:0 0 20px; }
+    
+    /* Two-column layout for table and form */
+    .grid{ display:grid; grid-template-columns: 2fr 1fr; gap:24px; align-items:start; }
+    
+    /* Responsive: stack columns on smaller screens */
+    @media (max-width: 1080px){ .grid{ grid-template-columns: 1fr; } }
+
+    /* Card styling for content containers */
+    .card{ background:var(--card); border-radius:24px; box-shadow:var(--shadow); padding:18px; }
+
+    /* View toggle buttons (Appointments/Patients) */
+    .view-toggle {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      background: var(--muted);
+      border-radius: 12px;
+      padding: 4px;
+      width: fit-content;
+    }
+    .view-toggle button {
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      background: transparent;
+      color: var(--ink-2);
+      transition: all 0.2s;
+    }
+    .view-toggle button.active {
+      background: var(--brand);
+      color: white;
+    }
+
+    /* Table styling */
+    .table-wrap{ max-height:520px; overflow:auto; }
+    table{ width:100%; border-collapse:collapse; }
+    thead th{ position:sticky; top:0; background:var(--brand); color:var(--ink); padding:12px; text-align:center; }
+    tbody td{ padding:12px; text-align:center; border-bottom:1px solid var(--muted); background:#fff; }
+    tbody tr:hover{ background:#f8f9fb; }
+    .wide{ min-width:160px; }
+    .actions{ display:flex; justify-content:center; gap:8px; flex-wrap:wrap; }
+
+    /* Button and input styling */
+    .btn{ border:none; border-radius:24px; padding:8px 14px; cursor:pointer; font-weight:600; transition:.18s; color:#fff; background:var(--brand); }
+    .btn:hover{ background:var(--brand-2); transform:scale(1.03); }
+    .btn-danger{ background:#ef4444; } .btn-danger:hover{ background:#dc2626; }
+    .btn-muted{ background:#94a3b8; } .btn-muted:hover{ background:#64748b; }
+
+    label{ font-weight:600; font-size:14px; }
+    .field{ display:flex; flex-direction:column; gap:6px; }
+    .input, .select{
+      width:100%; padding:10px 12px; border-radius:10px; border:1px solid #d1d5db; background:#f7f5f0; font-size:15px;
+      transition:.18s;
+    }
+    .input:focus, .select:focus{ outline:none; border-color:var(--brand); box-shadow:0 0 0 3px rgba(165,206,226,.35); }
+    .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .form-grid-1{ display:grid; grid-template-columns:1fr; gap:12px; }
+    .muted{ color:#6b7280; font-size:13px; margin:8px 0 0; }
+
+    /* Footer styling */
+    footer{ background:var(--brand); color:#f5f5f5; padding:18px; text-align:center; }
+  </style>
+</head>
+<body>
+  <!-- Page Header with Logo and Logout -->
+  <header>
+    <div class="logo">
+      <img src="images/logo.png" alt="Vital Care Logo"/>
+      <div class="logo-text"><span class="vital">Vital</span> <span class="care">Care</span></div>
+    </div>
+    <a class="link" href="mainpage.html" id="logoutLink">Log Out</a>
+  </header>
+
+  <!-- Navigation Menu -->
+  <nav>
+    <a href="mainpage.html">Home</a>
+    <a href="admin.html">Admin Dashboard</a>
+    <a href="departments.html">Doctors</a>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main>
+    <h1>Admin Dashboard</h1>
+
+    <div class="grid">
+      <!-- LEFT COLUMN: Bookings Table -->
+      <section class="card">
+        <h3 style="margin:0 0 10px;">All Bookings</h3>
+        
+        <!-- View Toggle: Switch between Appointments and Patients -->
+        <div class="view-toggle">
+          <button id="viewAppointments" class="active">View Appointments</button>
+          <button id="viewPatients">View Patients</button>
+        </div>
+        
+        <!-- Scrollable Table Container -->
+        <div class="table-wrap">
+          <table id="bookingsTable">
+            <thead>
+              <!-- Appointments Table Header (shown by default) -->
+              <tr id="appointmentsHeader">
+                <th class="wide">Patient Name</th>
+                <th class="wide">Patient Email</th>
+                <th>Telephone</th>
+                <th>NHS</th>
+                <th class="wide">Doctor</th>
+                <th class="wide">Date &amp; Time</th>
+                <th class="wide">Actions</th>
+              </tr>
+              <!-- Patients Table Header (hidden by default) -->
+              <tr id="patientsHeader" style="display: none;">
+                <th class="wide">First Name</th>
+                <th class="wide">Last Name</th>
+                <th class="wide">Email</th>
+                <th>Telephone</th>
+                <th>NHS</th>
+                <th class="wide">DOB</th>
+                <th class="wide">Actions</th>
+              </tr>
+            </thead>
+            <tbody><!-- Table rows will be added here by JavaScript --></tbody>
+          </table>
+        </div>
+        <p class="muted" id="tableHint">Tip: Click "Edit" to modify a patient's details. Use Delete to remove the patient entirely.</p>
+      </section>
+
+      <!-- RIGHT COLUMN: Patient Management Form -->
+      <aside class="card">
+        <h3 style="margin:0 0 12px;">Patient Management</h3>
+        <form id="patientForm" autocomplete="off">
+          <!-- Hidden field to store patient ID when editing -->
+          <input type="hidden" id="pid">
+          
+          <!-- Two-column form layout -->
+          <div class="form-grid">
+            <div class="field">
+              <label for="pFirst">First Name</label>
+              <input id="pFirst" class="input" required>
+            </div>
+            <div class="field">
+              <label for="pLast">Last Name</label>
+              <input id="pLast" class="input" required>
+            </div>
+            <div class="field">
+              <label for="pEmail">Email</label>
+              <input id="pEmail" type="email" class="input" required>
+            </div>
+            <div class="field">
+              <label for="pTel">Telephone</label>
+              <input id="pTel" type="tel" class="input" required>
+            </div>
+            <div class="field">
+              <label for="pDOB">DOB (YYYY-MM-DD)</label>
+              <input id="pDOB" class="input">
+            </div>
+            <div class="field">
+              <label for="pNHS">NHS Number</label>
+              <input id="pNHS" class="input" required>
+            </div>
+            <!-- Address field spans both columns -->
+            <div class="field" style="grid-column: 1 / -1;">
+              <label for="pAddr">Address</label>
+              <input id="pAddr" class="input">
+            </div>
+          </div>
+          
+          <!-- Form action buttons -->
+          <div style="display:flex; gap:8px; margin-top:10px;">
+            <button type="submit" class="btn" id="saveBtn">Add Patient</button>
+            <button type="button" class="btn-muted btn" id="resetBtn">Reset</button>
+          </div>
+        </form>
+      </aside>
+    </div>
+  </main>
+
+  <!-- Page Footer -->
+  <footer>© 2025 Vital Care. All Rights Reserved.</footer>
+
+<script>
+  // Database and storage names which are used to access the IndexedDB
+  const DB_PATIENTS = 'vitalCareDB';        // Database for patient information
+  const DB_DATA = 'VitalCareDB';            // Database for appointments and other data
+  const STORE_PATIENT = 'Patient';          // Store for patient records
+  const STORE_APPTS = 'appointments';       // Store for appointment records
+  const STORE_NOTES = 'notes';              // Store for patient notes
+  const STORE_RX = 'prescriptions';         // Store for prescriptions
+
+  // variables to store database connections
+  let idbP = null;      // connection to patient database
+  let idbD = null;      // connection to data database
+  let currentPatientEmail = null;  // track which patient is being edited
+  let currentView = 'appointments'; // track current view: 'appointments' or 'patients'
+
+  // function to open the patient database
+  async function openPatientsDb() {
+    return new Promise((res, rej) => {
+      // Try to open the database
+      const r = indexedDB.open(DB_PATIENTS, 1);
+      
+      // If database needs to be created or upgraded
+      r.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        // Create patient storage if it doesn't exist
+        if (!db.objectStoreNames.contains(STORE_PATIENT)) {
+          const s = db.createObjectStore(STORE_PATIENT, { keyPath: 'id', autoIncrement: true });
+          s.createIndex('Email', 'Email', { unique: true }); // Email must be unique
+        }
+      };
+      
+      // Database opened successfully
+      r.onsuccess = () => { idbP = r.result; res(idbP); };
+      // Database failed to open
+      r.onerror = () => rej(r.error);
+    });
+  }
+
+  // Function to open the data database (appointments, notes, prescriptions)
+  async function openDataDbEnsure() {
+    return new Promise((resolve, reject) => {
+      // Try to open the database
+      const r = indexedDB.open(DB_DATA);
+      
+      r.onsuccess = () => {
+        const db = r.result;
+        // Check if all required storages exist
+        const need = s => !Array.from(db.objectStoreNames).includes(s);
+        
+        // If all storages exist, we're done
+        if (!(need(STORE_APPTS) || need(STORE_NOTES) || need(STORE_RX))) { 
+          idbD = db; 
+          return resolve(db); 
+        }
+        
+        // If some storages are missing, upgrade the database
+        const v = db.version + 1; 
+        db.close();
+        const u = indexedDB.open(DB_DATA, v);
+        
+        // Create missing storages during upgrade
+        u.onupgradeneeded = (e) => {
+          const up = e.target.result;
+          if (need(STORE_APPTS)) up.createObjectStore(STORE_APPTS, { keyPath: 'id', autoIncrement: true }).createIndex('patientEmail', 'patientEmail', { unique: false });
+          if (need(STORE_NOTES)) up.createObjectStore(STORE_NOTES, { keyPath: 'id', autoIncrement: true }).createIndex('patientEmail', 'patientEmail', { unique: false });
+          if (need(STORE_RX)) up.createObjectStore(STORE_RX, { keyPath: 'id', autoIncrement: true }).createIndex('patientEmail', 'patientEmail', { unique: false });
+        };
+        
+        u.onsuccess = () => { idbD = u.result; resolve(idbD); };
+        u.onerror = () => reject(u.error);
+      };
+      r.onerror = () => reject(r.error);
+    });
+  }
+
+  // Helper functions to create database transactions
+  const txP = (name, mode = 'readonly') => idbP.transaction([name], mode).objectStore(name);
+  const txD = (name, mode = 'readonly') => idbD.transaction([name], mode).objectStore(name);
+
+  // Main function to load data into the table
+  async function loadBookings() {
+    const tbody = document.querySelector('#bookingsTable tbody'); 
+    tbody.innerHTML = ''; // Clear existing table rows
+    
+    // Load either appointments or patients based on current view
+    if (currentView === 'appointments') {
+      await loadAppointments(tbody);
+    } else {
+      await loadPatients(tbody);
+    }
+  }
+
+  // Function to load appointment data into the table
+  async function loadAppointments(tbody) {
+    // Get all appointments from database
+    const appts = await new Promise((res) => {
+      if (!idbD.objectStoreNames.contains(STORE_APPTS)) { res([]); return; }
+      const st = txD(STORE_APPTS, 'readonly'); 
+      const req = st.getAll();
+      req.onsuccess = () => res(req.result || []); 
+      req.onerror = () => res([]);
+    });
+
+    // Get unique patient emails from appointments
+    const emails = [...new Set(appts.map(a => a.patientEmail).filter(Boolean))];
+    // Create a map of patients by email for quick lookup
+    const pMap = await mapPatientsByEmail(emails);
+
+    // Show message if no appointments
+    if (!appts.length) {
+      tbody.innerHTML = '<tr><td colspan="7">No appointments yet.</td></tr>'; 
+      return;
+    }
+
+    // Sort appointments by date
+    appts.sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')));
+    
+    // Create a table row for each appointment
+    appts.forEach(a => {
+      const p = pMap[a.patientEmail] || {}; // Get patient data
+      const name = [p.First || p.first, p.Last || p.last].filter(Boolean).join(' ') || '(unknown)';
+      const tel = p.Telephone || '-';
+      const nhs = p.NHS || '-';
+      const doctor = a.doctor || '-';
+      const when = a.date || '';
+      
+      // Create table row with appointment data
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${name}</td>
+        <td>${a.patientEmail || '-'}</td>
+        <td>${tel}</td>
+        <td>${nhs}</td>
+        <td>${doctor}</td>
+        <td>${when}</td>
+        <td class="actions">
+          <button class="btn" data-act="edit" data-email="${a.patientEmail}">Edit</button>
+          <br>
+          <button class="btn btn-danger" data-act="del" data-email="${a.patientEmail}">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Function to load patient data into the table
+  async function loadPatients(tbody) {
+    // Get all patients from database
+    const patients = await new Promise((res) => {
+      if (!idbP.objectStoreNames.contains(STORE_PATIENT)) { res([]); return; }
+      const st = txP(STORE_PATIENT, 'readonly'); 
+      const req = st.getAll();
+      req.onsuccess = () => res(req.result || []); 
+      req.onerror = () => res([]);
+    });
+
+    // Show message if no patients
+    if (!patients.length) {
+      tbody.innerHTML = '<tr><td colspan="7">No patients yet.</td></tr>'; 
+      return;
+    }
+
+    // Create a table row for each patient
+    patients.forEach(p => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${p.First || ''}</td>
+        <td>${p.Last || ''}</td>
+        <td>${p.Email || '-'}</td>
+        <td>${p.Telephone || '-'}</td>
+        <td>${p.NHS || '-'}</td>
+        <td>${p.DOB || '-'}</td>
+        <td class="actions">
+          <button class="btn" data-act="edit" data-email="${p.Email}">Edit</button>
+          <br>
+          <button class="btn btn-danger" data-act="del" data-email="${p.Email}">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Handle button clicks in the table (Edit or Delete)
+  function onRowAction(e) {
+    const b = e.target.closest('button'); 
+    if (!b) return;
+    
+    const email = b.getAttribute('data-email'); 
+    const act = b.getAttribute('data-act');
+    
+    if (act === 'edit') fillFormFor(email);    // Fill form with patient data
+    if (act === 'del') deletePatientFlow(email); // Delete patient
+  }
+
+  // Create a map of patients by email for quick lookup
+  function mapPatientsByEmail(emails) {
+    return new Promise((res) => {
+      const out = {};
+      if (!emails.length || !idbP.objectStoreNames.contains(STORE_PATIENT)) { 
+        res(out); 
+        return; 
+      }
+      
+      const st = txP(STORE_PATIENT, 'readonly');
+      const idx = st.index('Email');
+      let left = emails.length;
+      
+      // Look up each patient by email
+      emails.forEach(e => {
+        const q = idx.get(e);
+        q.onsuccess = () => { 
+          if (q.result) out[e] = q.result; 
+          if (--left === 0) res(out); 
+        };
+        q.onerror = () => { 
+          if (--left === 0) res(out); 
+        };
+      });
+    });
+  }
+
+  // Reset the patient form to empty
+  function resetForm() {
+    document.getElementById('patientForm').reset();
+    document.getElementById('pid').value = '';
+    document.getElementById('saveBtn').textContent = 'Add Patient';
+    currentPatientEmail = null;
+  }
+
+  // Fill the form with data for a specific patient
+  async function fillFormFor(email) {
+    const st = txP(STORE_PATIENT, 'readonly');
+    const q = st.index('Email').get(email);
+    q.onsuccess = () => {
+      const r = q.result;
+      if (!r) return alert('Patient not found.');
+      
+      // Fill form fields with patient data
+      document.getElementById('pid').value = r.id;
+      document.getElementById('pFirst').value = r.First || '';
+      document.getElementById('pLast').value = r.Last || '';
+      document.getElementById('pEmail').value = r.Email || '';
+      document.getElementById('pTel').value = r.Telephone || '';
+      document.getElementById('pDOB').value = r.DOB || '';
+      document.getElementById('pNHS').value = r.NHS || '';
+      document.getElementById('pAddr').value = r.Address || '';
+      
+      // Change button text to indicate we're updating
+      document.getElementById('saveBtn').textContent = 'Update Patient';
+      currentPatientEmail = email;
+    };
+  }
+
+  // Set up reset button
+  document.getElementById('resetBtn').addEventListener('click', resetForm);
+
+  // Handle form submission (Add or Update patient)
+  document.getElementById('patientForm').addEventListener('submit', (e) => {
+    e.preventDefault(); // Prevent page reload
+
+    // Get form data
+    const id = document.getElementById('pid').value;
+    const data = {
+      First: document.getElementById('pFirst').value.trim(),
+      Last: document.getElementById('pLast').value.trim(),
+      Email: document.getElementById('pEmail').value.trim(),
+      Telephone: document.getElementById('pTel').value.trim(),
+      DOB: document.getElementById('pDOB').value.trim(),
+      NHS: document.getElementById('pNHS').value.trim(),
+      Address: document.getElementById('pAddr').value.trim(),
+    };
+
+    // Save to database - update if ID exists, add if new
+    const st = txP(STORE_PATIENT, 'readwrite');
+    const req = id ? st.put({ ...data, id: Number(id) }) : st.add(data);
+
+    // Handle successful save
+    req.onsuccess = async () => {
+      alert(id ? 'Patient updated successfully.' : 'Patient added successfully.');
+
+      // If this is a NEW patient, create a default appointment
+      if (!id && idbD && idbD.objectStoreNames.contains(STORE_APPTS)) {
+        const apptTx = idbD.transaction(STORE_APPTS, 'readwrite');
+        const apptStore = apptTx.objectStore(STORE_APPTS);
+        const newAppt = {
+          patientEmail: data.Email,
+          doctor: 'Unassigned',
+          date: new Date().toLocaleString(),
+        };
+        apptStore.add(newAppt);
+        apptTx.oncomplete = () => loadBookings(); // Refresh table
+      } else {
+        loadBookings(); // Refresh table
+      }
+
+      resetForm(); // Clear the form
+    };
+
+    // Handle save error
+    req.onerror = () => alert('Error saving patient (duplicate email or DB issue).');
+  });
+
+  // Delete a patient and their appointments
+  async function deletePatientFlow(email) {
+    if (!confirm(`Delete patient ${email}?`)) return;
+
+    // Delete from Patient database
+    const pst = txP(STORE_PATIENT, 'readwrite');
+    const pidx = pst.index('Email');
+    const pget = pidx.get(email);
+    pget.onsuccess = () => {
+      const patient = pget.result;
+      if (patient) pst.delete(patient.id);
+    };
+
+    // Also delete from Appointments database
+    if (idbD && idbD.objectStoreNames.contains(STORE_APPTS)) {
+      const ast = txD(STORE_APPTS, 'readwrite');
+      const aidx = ast.index('patientEmail');
+      const areq = aidx.getAllKeys(email);
+      areq.onsuccess = () => {
+        (areq.result || []).forEach(key => ast.delete(key));
+      };
+    }
+
+    // Wait a bit for transactions to finish, then refresh table
+    setTimeout(loadBookings, 300);
+  }
+
+  // Set up the view toggle buttons (Appointments/Patients)
+  function setupViewToggle() {
+    const appointmentsBtn = document.getElementById('viewAppointments');
+    const patientsBtn = document.getElementById('viewPatients');
+    const appointmentsHeader = document.getElementById('appointmentsHeader');
+    const patientsHeader = document.getElementById('patientsHeader');
+    
+    // Switch to appointments view
+    appointmentsBtn.addEventListener('click', () => {
+      if (currentView === 'appointments') return;
+      
+      currentView = 'appointments';
+      appointmentsBtn.classList.add('active');
+      patientsBtn.classList.remove('active');
+      appointmentsHeader.style.display = '';
+      patientsHeader.style.display = 'none';
+      loadBookings(); // Refresh table with appointments
+    });
+    
+    // Switch to patients view
+    patientsBtn.addEventListener('click', () => {
+      if (currentView === 'patients') return;
+      
+      currentView = 'patients';
+      patientsBtn.classList.add('active');
+      appointmentsBtn.classList.remove('active');
+      patientsHeader.style.display = '';
+      appointmentsHeader.style.display = 'none';
+      loadBookings(); // Refresh table with patients
+    });
+  }
+
+  // Initialize the application when page loads
+  (async function init() {
+    // Open databases
+    await openPatientsDb();
+    await openDataDbEnsure();
+    
+    // Set up UI components
+    setupViewToggle();
+    await loadBookings();
+    
+    // Add event listener for table actions
+    document.querySelector('#bookingsTable tbody').addEventListener('click', onRowAction);
+  })();
+</script>
+
+</body>
+</html>

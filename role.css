@@ -1,0 +1,266 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  color: #2c3e50;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-bottom: 70px;
+}
+
+/* TOP HEADER */
+.top-header {
+  background: #a5d0e3;
+  padding: 0.6rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+
+.logo {
+  height: 40px;      
+  width: auto;       
+  object-fit: contain;
+}
+
+.top-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.top-logo-text {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.white-text {
+  color: white;
+}
+
+.login {
+  color: #333;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.login:hover,
+.login:active {
+  color: white;
+}
+
+/* BOTTOM HEADER */
+.bottom-header {
+  background: #f8f7f2;
+  padding: 0.6rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: sticky;
+  top: 50px;
+  z-index: 999;
+}
+
+.bottom-header a {
+  text-decoration: none;
+  color: black;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: color 0.3s;
+  cursor: pointer;
+}
+
+.bottom-header a:hover {
+  color: #a5d0e3;
+}
+
+.bottom-header .center {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  flex: 1;
+  align-items: center;
+}
+
+/* ROLE SELECTION */
+.roles-section {
+  padding: 4rem 2rem;
+  background: white;
+  text-align: center;
+}
+
+.roles-section h2 {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+}
+
+.roles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.role-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 2rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.role-card:hover {
+  transform: translateY(-5px);
+}
+
+.role-img {
+  width: auto;
+  height: 350px;
+  background-size: cover;
+  background-position: center;
+  margin-bottom: 1.5rem;
+  background-repeat: no-repeat;
+  z-index: -1;
+  border-radius: 40px;
+}
+
+.role-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  z-index: 1;
+}
+
+.role-card p {
+  color: #555;
+  font-size: 1rem;
+}
+
+/* POPUP */
+.popup {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+}
+
+.popup-box {
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  width: 400px;
+  max-width: 90%;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.popup-box h2 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+.popup-box input {
+  width: 100%;
+  padding: 1rem;
+  margin: 0.8rem 0;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  transition: border 0.3s;
+}
+
+.popup-box input:focus {
+  border-color: #a5d0e3;
+}
+
+.popup-box button {
+  background: #a5d0e3;
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 2rem;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.popup-box button:hover {
+  background: #92c6d6;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 2rem;
+  cursor: pointer;
+  color: #333;
+}
+
+/* FOOTER */
+footer {
+  background: #a5d0e3;
+  color: white;
+  padding: 1.5rem;
+  text-align: center;
+  font-weight: 400;
+  margin-top: auto;
+}
+
+/* BACK TO TOP BUTTON */
+#backToTop {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: #a5d0e3;
+  color: white;
+  border: none;
+  padding: 0.8rem 1rem;
+  border-radius: 1rem;
+  cursor: pointer;
+  display: none;
+  z-index: 1000;
+}
+
+#backToTop:hover {
+  background: #92c6d6;
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+  .roles-section h2 {
+    font-size: 2rem;
+  }
+
+  .roles {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .popup-box {
+    width: 90%;
+  }
+}

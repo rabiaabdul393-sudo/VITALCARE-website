@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VitalCare (Role Login w/ IndexedDB Inline)</title>
+
+  <link rel="stylesheet" href="role.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+
+  <style>
+    /* Popup must sit above everything to prevent click-through to nav links */
+    .popup {
+      position: fixed; inset: 0; display: none;
+      align-items: center; justify-content: center;
+      background: rgba(0,0,0,.45);
+      z-index: 99999;             /* ⬅⬅ HIGH z-index */
+      pointer-events: auto;       /* ensure it captures clicks */
+    }
+    .popup-box {
+      position: relative;
+      background: #fff; padding: 20px; border-radius: 12px;
+      width: min(420px, 92vw);
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+      z-index: 100000;            /* ⬅⬅ above overlay */
+    }
+    .close-btn { cursor: pointer; font-size: 26px; float: right; }
+    #backToTop { position: fixed; right: 16px; bottom: 16px; display: none; }
+  </style>
+
+  <!-- ==== INLINE: VitalCareIndexedDB.js ==== -->
+  <script>
+    console.log('🔔 VitalCareIndexedDB.js LOADED (inlined)');
+    window._dbg = window._dbg || {};
+    window._dbg.__loadedFrom = 'inline:VitalCareIndexedDB.js?v=merge-2';
+
+    (function (g) { g._dbg = g._dbg || {}; g._dbg.VERSION = 'v3-marker'; })(window);
+
+    let _idb = null, dbNameInUse = null;
+    const CANDIDATE_DB_NAMES = ['vitalCareDB', 'VitalCareDB'];
+    const DB_VERSION = 1;
+    const encryptionKey = 'myEncryptionKey';
+    const STEP=(m,...a)=>console.log('🟦 [STEP]',m,...a);
+    const OK=(m,...a)=>console.log('🟩 [OK]',m,...a);
+    const WARN=(m,...a)=>console.warn('🟨 [WARN]',m,...a);
+    const ERR=(m,...a)=>console.error('🟥 [ERR]',m,...a);
+    window.addEventListener('error',(e)=>ERR('Uncaught error:',e.message, e.filename+':'+e.lineno+':'+e.colno));
+
+    function encryptData(p){ return CryptoJS.AES.encrypt(String(p), encryptionKey).toString(); }
+    function decryptData(c){ return CryptoJS.AES.decrypt(String(c||''), encryptionKey).toString(CryptoJS.enc.Utf8); }
+    function generatePasswordForUser(email){ return CryptoJS.MD5(String(email||'')).toString(CryptoJS.enc.Base64); }
+    function decrypt(c){ try{ return decryptData(c)||''; } catch{ return ''; } }
+
+    function openDBByName(name){
+      return new Promise((resolve,reject)=>{
+        STEP('Opening IndexedDB',{name,DB_VERSION});
+        const req = indexedDB.open(name, DB_VERSION);
+        req.onerror = ()=>reject(req.error||new Error('open error'));
+        req.onsuccess=()=>{
+          const _db=req.result;
+          OK('Opened DB',{name:_db.name,version:_db.version,stores:Array.from(_db.objectStoreNames)});
+          resolve(_db);
+        };
+        req.onupgradeneeded=(event)=>{
+          const _db=event.target.result;
+          STEP('onupgradeneeded',{oldVersion:event.oldVersion,newVersion:event.newVersion});
+          if(!_db.objectStoreNames.contains('Doctors')){ const s=_db.createObjectStore('Doctors',{keyPath:'id',autoIncrement:true}); s.createIndex('email','email',{unique:true}); }
+          if(!_db.objectStoreNames.contains('Patient')){ const s=_db.createObjectStore('Patient',{keyPath:'id',autoIncrement:true}); s.createIndex('email','email',{unique:true}); }
+          if(!_db.objectStoreNames.contains('Admin'))  { const s=_db.createObjectStore('Admin',{keyPath:'id',autoIncrement:true});   s.createIndex('email','email',{unique:true}); }
+          if(!_db.objectStoreNames.contains('Appointments')){ const s=_db.createObjectStore('Appointments',{keyPath:'id',autoIncrement:true}); s.createIndex('patientEmail','patientEmail',{unique:false}); s.createIndex('doctorEmail','doctorEmail',{unique:false}); s.createIndex('date','date',{unique:false}); }
+          if(!_db.objectStoreNames.contains('Notes')){ const s=_db.createObjectStore('Notes',{keyPath:'id',autoIncrement:true}); s.createIndex('patientEmail','patientEmail',{unique:false}); s.createIndex('doctorEmail','doctorEmail',{unique:false}); s.createIndex('createdAt','createdAt',{unique:false}); }
+          if(!_db.objectStoreNames.contains('Prescriptions')){ const s=_db.createObjectStore('Prescriptions',{keyPath:'id',autoIncrement:true}); s.createIndex('patientEmail','patientEmail',{unique:false}); s.createIndex('doctorEmail','doctorEmail',{unique:false}); s.createIndex('createdAt','createdAt',{unique:false}); }
+        };
+      });
+    }
+
+    async function ensureDB(){
+      if(_idb) return _idb;
+      for(const name of CANDIDATE_DB_NAMES){
+        try{
+          const cand = await openDBByName(name);
+          const stores = Array.from(cand.objectStoreNames||[]);
+          if (['Doctors','Patient','Admin'].some(s=>stores.includes(s))){
+            _idb=cand; dbNameInUse=name; OK('Using DB name',dbNameInUse);
+            _idb.onversionchange=()=>{ WARN('DB version change — closing handle'); _idb.close(); _idb=null; };
+            return _idb;
+          } else { WARN('DB opened but expected stores missing',{name,stores}); cand.close(); }
+        } catch(e){ WARN('Failed to open candidate DB',name,e); }
+      }
+      throw new Error('No suitable DB found. Seed it first (Doctors/Patient/Admin).');
+    }
+
+    function mapRoleToStore(r){
+      const v=String(r||'').toLowerCase();
+      return v==='doctor'?'Doctors': v==='patient'?'Patient': v==='admin'?'Admin': r;
+    }
+
+    function txStore(storeName, mode='readonly'){
+      if(!_idb) throw new DOMException('DB not open','InvalidStateError');
+      return _idb.transaction([storeName], mode).objectStore(storeName);
+    }
+    async function _withTxRetry(storeName,mode,opFn){
+      try{ const s=txStore(storeName,mode); return await opFn(s); }
+      catch(e){ if(e&&e.name==='InvalidStateError'){ WARN('Handle closing — retry'); _idb=null; await ensureDB(); const s=txStore(storeName,mode); return await opFn(s);} throw e; }
+    }
+    function getAll(storeName){ return _withTxRetry(storeName,'readonly',(s)=>new Promise((res,rej)=>{const r=s.getAll(); r.onsuccess=()=>res(r.result||[]); r.onerror=()=>rej(r.error);})); }
+    function getByEmailIndex(storeName,email){ return _withTxRetry(storeName,'readonly',(s)=>new Promise((res,rej)=>{ if(![...s.indexNames].includes('email')){ WARN(`No email index in ${storeName}`); res(null); return; } const idx=s.index('email'); const r=idx.get(email); r.onsuccess=()=>res(r.result||null); r.onerror=()=>rej(r.error);})); }
+    async function listStoreEmails(storeName){ const rows=await getAll(storeName); const emails=rows.map(r=>r.email||r.Email).filter(Boolean); console.log(`📬 Emails in ${storeName} (${emails.length}):`,emails); return emails; }
+
+    async function validateRoleLogin(roleOrStore,username,password,callback){
+      console.groupCollapsed('validateRoleLogin()'); console.time('validateRoleLogin'); STEP('Inputs',{roleOrStore,usernamePreview:username,pwdLen:(password||'').length});
+      try{
+        await ensureDB();
+        const store=mapRoleToStore(roleOrStore);
+        if(!Array.from(_idb.objectStoreNames).includes(store)){ callback(false,`Store ${store} not found in DB ${dbNameInUse}.`); console.groupEnd(); return; }
+        await listStoreEmails(store);
+        let user=await getByEmailIndex(store,username);
+        if(!user){ const rows=await getAll(store); user=rows.find(r=>(r.email&&r.email===username)||(r.Email&&r.Email===username))||null; }
+        if(!user){ OK('Result',{found:false}); callback(false,`No ${store} found with this email`); console.groupEnd(); return; }
+
+        const plain=decrypt(user.password); STEP('Decrypted candidate',{preview:plain?plain.slice(0,6)+'...':'(empty)'}); 
+        if(!plain){ callback(false,'Password decrypt failed'); console.groupEnd(); return; }
+
+        if(plain===password){ OK('Password match'); callback(true,'Login successful'); } else { WARN('Password mismatch'); callback(false,'Invalid password'); }
+      } catch(e){ ERR('Validation error',e); callback(false,'Validation error: '+(e?.message||e)); }
+      finally{ try{ console.timeEnd('validateRoleLogin'); }catch{} console.groupEnd(); }
+    }
+
+    // Expose
+    window.validateRoleLogin = validateRoleLogin;
+    window.initDB = async (cb)=>{ try{ await ensureDB(); cb&&cb(true);} catch{ cb&&cb(false);} };
+    window.addDoctorData = (arr)=>{};
+    window.addPatientData = (arr)=>{};
+    window.addAdminData   = (arr)=>{};
+    window.generatePasswordForUser = generatePasswordForUser;
+    window.encryptData = encryptData;
+    window.decryptData = decryptData;
+    Object.assign(window._dbg,{ ensureDB, listStoreEmails, mapRoleToStore });
+  </script>
+</head>
+<body>
+  <!-- TOP HEADER -->
+  <div class="top-header" id="topHeader">
+    <div class="top-left">
+      <img src="images/logo.png" alt="Logo" class="logo">
+      <span class="top-logo-text"><span class="white-text">Vital</span>Care</span>
+    </div>
+    <a href="role.html" class="login">Log in</a>
+  </div>
+
+  <!-- BOTTOM HEADER -->
+  <div class="bottom-header">
+    <div class="center">
+      <a href="mainpage.html">Home</a>
+      <a href="departments.html">Departments</a>
+      <a href="aboutus.html">About Us</a>
+      <!-- <a href="./contact.html">Contact Us</a> -->
+    </div>
+  </div>
+
+  <!-- ROLES -->
+  <section id="roles" class="roles-section">
+    <h2>Select Your Role</h2>
+    <div class="roles">
+      <div class="role-card" onclick="showPopup('doctor')">
+        <div class="role-img" style="background-image:url('images/doctor-image.png');"></div>
+        <div class="role-content"><h3>Doctor</h3><p>Manage patient records, appointments, and treatments</p></div>
+      </div>
+
+      <div class="role-card" onclick="showPopup('patient')">
+        <div class="role-img" style="background-image:url('images/patient-image.png');"></div>
+        <div class="role-content"><h3>Patient</h3><p>Book consultations, view reports, and stay connected.</p></div>
+      </div>
+
+      <div class="role-card" onclick="showPopup('admin')">
+        <div class="role-img" style="background-image:url('images/admin-image.png');"></div>
+        <div class="role-content"><h3>Admin</h3><p>Oversee operations, profiles, and patient data.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- POPUP -->
+  <div id="popup" class="popup" style="display:none;">
+    <div class="popup-box" role="dialog" aria-modal="true">
+      <span class="close-btn" onclick="closePopup()">&times;</span>
+      <h2 id="popup-title">Log in to VitalCare</h2>
+      <form id="login-form" action="javascript:void(0)">
+        <input type="text" id="username" placeholder="Username (Email)" autocomplete="username" required>
+        <input type="password" id="password" placeholder="Password" autocomplete="current-password" required>
+        <button type="submit">Log In</button>
+      </form>
+      <div id="logHint" style="font-size:12px;color:#475569;margin-top:8px;"></div>
+    </div>
+  </div>
+<br><br><br><br><br>
+  <footer>&copy; <span id="year"></span> VitalCare. All rights reserved</footer>
+  <button id="backToTop">↑ Top</button>
+
+  <script type="module">
+    const RSTEP=(...a)=>console.log('🟦 [STEP]',...a);
+    const ROK=(...a)=>console.log('🟩 [OK]',...a);
+    const RWARN=(...a)=>console.warn('🟨 [WARN]',...a);
+    const RERR=(...a)=>console.error('🟥 [ERR]',...a);
+
+    let selectedRole = '';
+
+    function mapRoleToStore(role){
+      const map = { doctor:'Doctors', patient:'Patient', admin:'Admin' };
+      return map[role] || role;
+    }
+
+    // ✅ Map to actual pages
+    function mapRoleToPage(role){
+      const page = role==='doctor' ? './doctor.html'
+                 : role==='patient' ? './patientinfo.html'
+                 : './admin.html';
+      RSTEP('mapRoleToPage()', { role, page });
+      return page;
+    }
+
+    (function boot(){
+      document.getElementById('year').textContent = new Date().getFullYear();
+
+      window.addEventListener('scroll', () => {
+        const topHeader = document.getElementById('topHeader');
+        const backToTop = document.getElementById('backToTop');
+        topHeader.classList.toggle('scrolled', window.scrollY > 50);
+        backToTop.style.display = window.scrollY > 300 ? 'block' : 'none';
+      });
+
+      document.getElementById('backToTop').addEventListener('click', ()=> window.scrollTo({ top:0, behavior:'smooth' }));
+
+      const form = document.querySelector('#login-form');
+      form.addEventListener('submit', onSubmitLogin);
+
+      if (typeof window.validateRoleLogin !== 'function') {
+        RERR('validateRoleLogin() not found on window.');
+        document.getElementById('logHint').textContent = 'Note: validateRoleLogin() not found. Check inline DB script.';
+      } else {
+        ROK('validateRoleLogin() detected.');
+      }
+    })();
+
+    // Disable background scroll/clicks when popup open
+    function showPopup(role){
+      selectedRole = role;
+      const popup = document.getElementById('popup');
+      document.getElementById('popup-title').textContent = `${role.charAt(0).toUpperCase()+role.slice(1)} Login`;
+      popup.style.display = 'flex';
+      document.body.style.overflow = 'hidden';     // ⬅ prevent background scroll
+      RSTEP('Popup opened',{selectedRole});
+      // Focus the first field to avoid Enter triggering any background link
+      setTimeout(()=> document.getElementById('username').focus(), 0);
+    }
+
+    function closePopup(){
+      document.getElementById('popup').style.display = 'none';
+      document.body.style.overflow = '';           // re-enable scroll
+      RSTEP('Popup closed');
+    }
+
+    function onSubmitLogin(event){
+      event.preventDefault();
+      event.stopPropagation();                     // ⬅ stop bubbling to any background elements
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+
+      RSTEP('Submit',{selectedRole, usernamePreview:username});
+
+      if (!selectedRole){ alert('Please select a role first'); return; }
+      if (!username || !password){ alert('Please enter both email and password'); return; }
+
+      validateLogin(username, password, selectedRole);
+    }
+
+    function validateLogin(username, password, roleUi){
+      if (typeof window.validateRoleLogin !== 'function'){
+        RERR('validateRoleLogin() missing'); alert('Login system not ready.'); return;
+      }
+      const idbStore = mapRoleToStore(roleUi);
+      console.time('validateRoleLogin');
+
+      window.validateRoleLogin(idbStore, username, password, (isValid, message) => {
+        console.timeEnd('validateRoleLogin');
+        RSTEP('validateRoleLogin callback', { isValid, message });
+
+        if (isValid){
+          const session = { role: roleUi, email: username };
+          try { localStorage.setItem('vc_session', JSON.stringify(session)); } catch(e){ RERR('Session save failed', e); }
+
+          const targetPage = mapRoleToPage(roleUi);
+          ROK('Login OK → redirecting', { targetPage });
+          // Don’t close popup first; go straight to the page to avoid any click-through/race
+          window.location.assign(targetPage);
+          return;                                   // ⬅ stop here; don’t run any close logic after
+        } else {
+          RWARN('Login failed', message);
+          alert(message || 'Invalid credentials');
+          // safe to keep popup open for retry
+        }
+      });
+    }
+
+    // expose for onclick
+    window.showPopup = showPopup;
+    window.closePopup = closePopup;
+  </script>
+</body>
+</html>

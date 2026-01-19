@@ -1,0 +1,320 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+  <title>Contact Us</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', Arial, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: url('/Users/90s./Downloads/bluebg.jpg') no-repeat center center fixed;
+      background-size: cover;
+      position: relative;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(245, 245, 245, 0.5);
+      z-index: -1;
+    }
+
+    header {
+      background-color: #a5cee2;
+      height: 70px;
+      padding: 0 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    header img {
+      width: 40px;
+      height: auto;
+    }
+
+    .logo-text {
+      font-size: 26px;
+      font-weight: bold;
+      line-height: 1;
+    }
+
+    .logo-text .vital {
+      color: white;
+    }
+
+    .logo-text .care {
+      color: #313f52;
+    }
+
+    .login-link {
+      text-decoration: none;
+      color: #333;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    nav {
+      background-color: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 15px 0;
+      position: relative;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #333;
+      font-weight: 600;
+      margin: 0 25px;
+    }
+
+    nav a:hover { color: #a5cee2; }
+
+    .contact-section {
+      text-align: center;
+      padding: 60px 20px;
+      flex: 1;
+    }
+
+    .contact-section h2 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 32px;
+    }
+
+    .contact-section p {
+      color: #333;
+      max-width: 700px;
+      margin: 0 auto 40px;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .contact-container {
+      display: flex;
+      justify-content: center;
+      gap: 50px;
+      flex-wrap: wrap;
+    }
+
+    .contact-info, .contact-form {
+      background-color: #f5f5f5;
+      padding: 30px;
+      border-radius: 25px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      width: 350px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+    }
+
+    .contact-info h3 {
+      color: #a5cee2;
+      margin-bottom: 10px;
+      font-size: 20px;
+    }
+
+    .contact-info p {
+      color: #333;
+      line-height: 1.6;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-align: center;
+    }
+
+    .contact-form label {
+      display: block;
+      text-align: left;
+      margin: 15px 0 5px;
+      color: #333;
+      font-weight: bold;
+    }
+
+    .contact-form input, 
+    .contact-form textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+      background-color: #f5f5f5;
+      box-sizing: border-box;
+      color: #333;
+    }
+
+    .contact-form button {
+      border-radius: 20px;
+      background-color: #a5cee2;
+      font-size: 16px;
+      padding: 10px 20px;
+      transition: 0.3s;
+      margin-top: 15px;
+      align-self: center;
+      cursor: pointer;
+      border: none;
+    }
+
+    .contact-form button:hover {
+      background-color: #86b9cf;
+      transform: scale(1.05);
+    }
+
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background-color: #f5f5f5;
+      padding: 25px 35px;
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      z-index: 1000;
+      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+      text-align: center;
+      color: #333;
+      opacity: 0;
+    }
+
+    .popup.show {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+
+    .popup h3 {
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .popup button {
+      padding: 8px 15px;
+      border-radius: 10px;
+      background-color: #a5cee2;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .popup button:hover {
+      background-color: #86b9cf;
+    }
+
+    footer {
+      background-color: #a5cee2;
+      text-align: center;
+      color: #f5f5f5;
+      padding: 20px;
+      font-size: 14px;
+      margin-top: auto;
+    }
+  </style>
+  <script src="https://kit.fontawesome.com/81df31588c.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <img src="images/logo.png" alt="Vital Care Logo">
+      <div class="logo-text"><span class="vital">Vital</span> <span class="care">Care</span></div>
+    </div>
+    <a href="role.html" class="login-link">Log In</a>
+  </header>
+
+  <nav>
+    <a href="mainpage.html">Home</a>
+    <a href="departments.html">Departments</a>
+    <a href="aboutus.html">About Us</a>
+    <a href="contact.html">Contact Us</a>
+  </nav>
+
+  <section class="contact-section">
+    <h2>Contact Us</h2>
+    <p>We’re here to help! You can reach us through the form below or our contact details.</p>
+
+    <div class="contact-container">
+      <div class="contact-info">
+        <h3>Address</h3>
+        <p><i class="fas fa-map-marker-alt" style="color:#a5cee2;"></i> 123 District Street, Med City, UAE</p>
+
+        <h3>Phone</h3>
+        <p><i class="fas fa-phone" style="color:#a5cee2;"></i> +971 4 123 4567</p>
+
+        <h3>Email</h3>
+        <p><i class="fas fa-envelope" style="color:#a5cee2;"></i> info@vitalcare.com</p>
+      </div>
+
+      <div class="contact-form">
+        <form id="contactForm">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" name="name" placeholder="Enter your name" required>
+
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="Enter your email" required>
+
+          <label for="message">Message</label>
+          <textarea id="message" name="message" rows="5" placeholder="Write your message..." required></textarea>
+
+          <button type="submit">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <div id="popup" class="popup">
+  <h3>Thank you!</h3>
+  <p>Your message has been sent successfully.</p>
+  </div>
+
+
+  <footer>
+    © 2025 Vital Care. All Rights Reserved.
+  </footer>
+
+  <script>
+const form = document.getElementById("contactForm");
+const popup = document.getElementById("popup");
+
+form.addEventListener("submit", function(event) {
+  event.preventDefault();
+
+  let name = document.getElementById("name").value;
+  let email = document.getElementById("email").value;
+  let message = document.getElementById("message").value;
+
+  if (name === "" || email === "" || message === "") {
+    alert("Please fill out all fields before sending.");
+  } else {
+    popup.classList.add("show");
+    form.reset();
+
+    setTimeout(() => {
+      popup.classList.remove("show");
+    }, 3000);
+  }
+});
+</script>
+</body>
+</html>
